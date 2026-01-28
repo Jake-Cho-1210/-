@@ -138,6 +138,14 @@ const posts = [
   }
 ];
 
+// Mock Chat Contacts
+const mockContacts = [
+  { id: 'user1', name: 'SeoulExplorer', lastMessage: 'Thanks for the tip!' },
+  { id: 'user2', name: 'MountainHiker', lastMessage: 'See you on the trail!' },
+  { id: 'user3', name: 'FoodieSeoul', lastMessage: 'That place was amazing!' },
+  { id: 'user4', name: 'KoreaWanderer', lastMessage: 'Have a great trip!' }
+];
+
 // Category name mapping
 const categoryNames = {
   'all': 'All Posts',
@@ -155,6 +163,9 @@ const categoryNames = {
 let currentCategory = 'all';
 let currentSort = 'hot';
 let searchQuery = '';
+let currentUser = null;
+let currentChatContact = null;
+let chatMessages = {};
 
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
@@ -166,6 +177,275 @@ const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const leftSidebar = document.getElementById('leftSidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+// Auth Elements
+const authButtons = document.getElementById('authButtons');
+const userMenu = document.getElementById('userMenu');
+const loginBtn = document.getElementById('loginBtn');
+const signupBtn = document.getElementById('signupBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userMenuBtn = document.getElementById('userMenuBtn');
+const userDropdown = document.getElementById('userDropdown');
+const usernameDisplay = document.getElementById('usernameDisplay');
+const authModalOverlay = document.getElementById('authModalOverlay');
+const authModal = document.getElementById('authModal');
+const authModalClose = document.getElementById('authModalClose');
+const authModalTitle = document.getElementById('authModalTitle');
+const authForm = document.getElementById('authForm');
+const nameGroup = document.getElementById('nameGroup');
+const nameInput = document.getElementById('nameInput');
+const emailInput = document.getElementById('emailInput');
+const passwordInput = document.getElementById('passwordInput');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authSwitch = document.getElementById('authSwitch');
+const switchToSignup = document.getElementById('switchToSignup');
+
+// Theme Elements
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+// Chat Elements
+const chatBtn = document.getElementById('chatBtn');
+const chatPanel = document.getElementById('chatPanel');
+const chatOverlay = document.getElementById('chatOverlay');
+const chatCloseBtn = document.getElementById('chatCloseBtn');
+const chatContacts = document.getElementById('chatContacts');
+const chatNoSelection = document.getElementById('chatNoSelection');
+const chatThread = document.getElementById('chatThread');
+const chatThreadName = document.getElementById('chatThreadName');
+const chatMessages_ = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
+
+let isSignupMode = false;
+
+// Initialize app
+function init() {
+  loadTheme();
+  loadUser();
+  loadChatMessages();
+  renderPosts();
+  renderChatContacts();
+}
+
+// Theme Functions
+function loadTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+}
+
+// Auth Functions
+function loadUser() {
+  const savedUser = localStorage.getItem('currentUser');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    updateAuthUI();
+  }
+}
+
+function updateAuthUI() {
+  if (currentUser) {
+    authButtons.style.display = 'none';
+    userMenu.style.display = 'block';
+    usernameDisplay.textContent = currentUser.name;
+  } else {
+    authButtons.style.display = 'flex';
+    userMenu.style.display = 'none';
+  }
+}
+
+function openAuthModal(signup = false) {
+  isSignupMode = signup;
+  authModalTitle.textContent = signup ? 'Sign up' : 'Log in';
+  authSubmitBtn.textContent = signup ? 'Sign up' : 'Log in';
+  nameGroup.style.display = signup ? 'flex' : 'none';
+  authSwitch.innerHTML = signup 
+    ? 'Already have an account? <button type="button" id="switchToLogin">Log in</button>'
+    : 'Don\'t have an account? <button type="button" id="switchToSignup">Sign up</button>';
+  
+  // Reset form
+  authForm.reset();
+  
+  authModalOverlay.classList.add('active');
+  emailInput.focus();
+  
+  // Add event listener for switch
+  const switchBtn = signup 
+    ? document.getElementById('switchToLogin')
+    : document.getElementById('switchToSignup');
+  switchBtn.addEventListener('click', () => {
+    openAuthModal(!signup);
+  });
+}
+
+function closeAuthModal() {
+  authModalOverlay.classList.remove('active');
+  authForm.reset();
+}
+
+function handleAuthSubmit(e) {
+  e.preventDefault();
+  
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  const name = isSignupMode ? nameInput.value.trim() : email.split('@')[0];
+  
+  if (!email || !password || (isSignupMode && !name)) {
+    return;
+  }
+  
+  // Mock auth - just store the user
+  currentUser = {
+    id: Date.now().toString(),
+    name: name,
+    email: email
+  };
+  
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  updateAuthUI();
+  closeAuthModal();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');
+  updateAuthUI();
+  userDropdown.classList.remove('active');
+  
+  // Close chat if open
+  closeChatPanel();
+}
+
+function toggleUserDropdown() {
+  userDropdown.classList.toggle('active');
+}
+
+// Chat Functions
+function loadChatMessages() {
+  const saved = localStorage.getItem('chatMessages');
+  if (saved) {
+    chatMessages = JSON.parse(saved);
+  } else {
+    // Initialize with some mock messages
+    chatMessages = {
+      'user1': [
+        { id: 1, from: 'user1', text: 'Hey! Love your subway guide!', time: '10:30 AM' },
+        { id: 2, from: 'me', text: 'Thanks! Let me know if you have questions.', time: '10:32 AM' },
+        { id: 3, from: 'user1', text: 'Thanks for the tip!', time: '10:35 AM' }
+      ],
+      'user2': [
+        { id: 1, from: 'user2', text: 'That hiking trail looks amazing!', time: 'Yesterday' },
+        { id: 2, from: 'me', text: 'It really is! The views are incredible.', time: 'Yesterday' },
+        { id: 3, from: 'user2', text: 'See you on the trail!', time: 'Yesterday' }
+      ]
+    };
+    saveChatMessages();
+  }
+}
+
+function saveChatMessages() {
+  localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+}
+
+function openChatPanel() {
+  if (!currentUser) {
+    openAuthModal(false);
+    return;
+  }
+  chatPanel.classList.add('active');
+  chatOverlay.classList.add('active');
+}
+
+function closeChatPanel() {
+  chatPanel.classList.remove('active');
+  chatOverlay.classList.remove('active');
+  currentChatContact = null;
+  chatThread.style.display = 'none';
+  chatNoSelection.style.display = 'flex';
+  
+  // Remove active state from contacts
+  document.querySelectorAll('.chat-contact').forEach(c => c.classList.remove('active'));
+}
+
+function renderChatContacts() {
+  chatContacts.innerHTML = mockContacts.map(contact => {
+    const messages = chatMessages[contact.id] || [];
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1].text : contact.lastMessage;
+    return `
+      <div class="chat-contact" data-contact-id="${contact.id}">
+        <div class="chat-contact-name">${contact.name}</div>
+        <div class="chat-contact-preview">${lastMsg}</div>
+      </div>
+    `;
+  }).join('');
+  
+  // Add click listeners
+  document.querySelectorAll('.chat-contact').forEach(el => {
+    el.addEventListener('click', () => selectChatContact(el.dataset.contactId));
+  });
+}
+
+function selectChatContact(contactId) {
+  currentChatContact = mockContacts.find(c => c.id === contactId);
+  if (!currentChatContact) return;
+  
+  // Update active state
+  document.querySelectorAll('.chat-contact').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[data-contact-id="${contactId}"]`).classList.add('active');
+  
+  // Show thread
+  chatNoSelection.style.display = 'none';
+  chatThread.style.display = 'flex';
+  chatThreadName.textContent = currentChatContact.name;
+  
+  renderChatMessages();
+  chatInput.focus();
+}
+
+function renderChatMessages() {
+  if (!currentChatContact) return;
+  
+  const messages = chatMessages[currentChatContact.id] || [];
+  chatMessages_.innerHTML = messages.map(msg => `
+    <div class="chat-message ${msg.from === 'me' ? 'sent' : 'received'}">
+      ${msg.text}
+      <div class="chat-message-time">${msg.time}</div>
+    </div>
+  `).join('');
+  
+  // Scroll to bottom
+  chatMessages_.scrollTop = chatMessages_.scrollHeight;
+}
+
+function sendChatMessage() {
+  if (!currentChatContact || !chatInput.value.trim()) return;
+  
+  const text = chatInput.value.trim();
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  
+  if (!chatMessages[currentChatContact.id]) {
+    chatMessages[currentChatContact.id] = [];
+  }
+  
+  chatMessages[currentChatContact.id].push({
+    id: Date.now(),
+    from: 'me',
+    text: text,
+    time: time
+  });
+  
+  saveChatMessages();
+  renderChatMessages();
+  renderChatContacts();
+  chatInput.value = '';
+}
 
 // Format vote count
 function formatVotes(votes) {
@@ -388,12 +668,45 @@ mobileMenuBtn.addEventListener('click', openMobileSidebar);
 closeSidebarBtn.addEventListener('click', closeMobileSidebar);
 sidebarOverlay.addEventListener('click', closeMobileSidebar);
 
-// Handle escape key to close sidebar
+// Theme toggle
+themeToggleBtn.addEventListener('click', toggleTheme);
+
+// Auth event listeners
+loginBtn.addEventListener('click', () => openAuthModal(false));
+signupBtn.addEventListener('click', () => openAuthModal(true));
+authModalClose.addEventListener('click', closeAuthModal);
+authModalOverlay.addEventListener('click', (e) => {
+  if (e.target === authModalOverlay) closeAuthModal();
+});
+authForm.addEventListener('submit', handleAuthSubmit);
+userMenuBtn.addEventListener('click', toggleUserDropdown);
+logoutBtn.addEventListener('click', logout);
+
+// Chat event listeners
+chatBtn.addEventListener('click', openChatPanel);
+chatCloseBtn.addEventListener('click', closeChatPanel);
+chatOverlay.addEventListener('click', closeChatPanel);
+chatSendBtn.addEventListener('click', sendChatMessage);
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendChatMessage();
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if (!userMenu.contains(e.target)) {
+    userDropdown.classList.remove('active');
+  }
+});
+
+// Handle escape key to close modals/sidebars
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeMobileSidebar();
+    closeAuthModal();
+    closeChatPanel();
+    userDropdown.classList.remove('active');
   }
 });
 
 // Initial render
-renderPosts();
+init();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,17 +29,144 @@
       </div>
     </div>
     <div class="nav-right">
+      <!-- Theme Toggle -->
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle theme">
+        <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <!-- Chat Button -->
+      <button class="chat-btn" id="chatBtn" aria-label="Open chat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+
       <select class="language-selector" id="languageSelector">
         <option value="en">English</option>
-        <option value="fr">Français</option>
+        <option value="fr">Francais</option>
         <option value="de">Deutsch</option>
-        <option value="ru">Русский</option>
+        <option value="ru">Russki</option>
       </select>
+
+      <!-- Auth Buttons (shown when logged out) -->
+      <div class="auth-buttons" id="authButtons">
+        <button class="auth-btn login-btn" id="loginBtn">Log in</button>
+        <button class="auth-btn signup-btn" id="signupBtn">Sign up</button>
+      </div>
+
+      <!-- User Menu (shown when logged in) -->
+      <div class="user-menu" id="userMenu" style="display: none;">
+        <button class="user-menu-btn" id="userMenuBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="username" id="usernameDisplay"></span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="user-dropdown" id="userDropdown">
+          <button class="dropdown-item" id="logoutBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Log out
+          </button>
+        </div>
+      </div>
     </div>
   </nav>
 
   <!-- Mobile Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModalOverlay">
+    <div class="modal" id="authModal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="authModalClose" aria-label="Close modal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <h2 class="modal-title" id="authModalTitle">Log in</h2>
+      <form class="auth-form" id="authForm">
+        <div class="form-group" id="nameGroup" style="display: none;">
+          <label for="nameInput">Name</label>
+          <input type="text" id="nameInput" placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label for="passwordInput">Password</label>
+          <input type="password" id="passwordInput" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="form-submit" id="authSubmitBtn">Log in</button>
+      </form>
+      <p class="auth-switch" id="authSwitch">
+        Don't have an account? <button type="button" id="switchToSignup">Sign up</button>
+      </p>
+    </div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <h3>Messages</h3>
+      <button class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="chat-body">
+      <div class="chat-contacts" id="chatContacts">
+        <!-- Contacts will be rendered here -->
+      </div>
+      <div class="chat-messages-container" id="chatMessagesContainer">
+        <div class="chat-no-selection" id="chatNoSelection">
+          <p>Select a conversation to start chatting</p>
+        </div>
+        <div class="chat-thread" id="chatThread" style="display: none;">
+          <div class="chat-thread-header" id="chatThreadHeader">
+            <span class="chat-thread-name" id="chatThreadName"></span>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be rendered here -->
+          </div>
+          <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+            <button class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-overlay" id="chatOverlay"></div>
 
   <!-- Main Layout -->
   <main class="main-container">
@@ -111,7 +238,7 @@
           <div class="nav-item" data-category="audio-guides">
             <div class="nav-item-content">
               <span class="nav-item-title">Audio Guides</span>
-              <span class="nav-item-desc">English, Français, Deutsch, русский</span>
+              <span class="nav-item-desc">English, Francais, Deutsch, Russki</span>
             </div>
           </div>
         </div>
