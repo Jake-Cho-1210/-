@@ -20,7 +20,8 @@ const posts = [
     author: "MountainHiker",
     timestamp: "5 hours ago",
     votes: 256,
-    comments: 32
+    comments: 32,
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80"
   },
   {
     id: 3,
@@ -42,7 +43,8 @@ const posts = [
     author: "KoreaWanderer",
     timestamp: "12 hours ago",
     votes: 421,
-    comments: 56
+    comments: 56,
+    image: "https://images.unsplash.com/photo-1590559899731-a382839e5549?w=800&q=80"
   },
   {
     id: 5,
@@ -53,7 +55,8 @@ const posts = [
     author: "FoodieSeoul",
     timestamp: "1 day ago",
     votes: 534,
-    comments: 72
+    comments: 72,
+    image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800&q=80"
   },
   {
     id: 6,
@@ -108,7 +111,8 @@ const posts = [
     author: "SpringWatcher",
     timestamp: "3 days ago",
     votes: 723,
-    comments: 94
+    comments: 94,
+    image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80"
   },
   {
     id: 11,
@@ -173,6 +177,17 @@ function formatVotes(votes) {
 
 // Create post card HTML
 function createPostCard(post) {
+  const imageHTML = post.image 
+    ? `<div class="post-image-container">
+        <img 
+          src="${post.image}" 
+          alt="${post.title}" 
+          class="post-image" 
+          loading="lazy"
+        />
+      </div>`
+    : '';
+
   return `
     <article class="post-card" data-post-id="${post.id}">
       <div class="vote-section">
@@ -197,6 +212,7 @@ function createPostCard(post) {
           <span>${post.timestamp}</span>
         </div>
         <h3 class="post-title">${post.title}</h3>
+        ${imageHTML}
         <p class="post-preview">${post.content}</p>
         <div class="post-actions">
           <button class="action-btn">
