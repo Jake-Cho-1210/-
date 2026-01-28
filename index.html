@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travexlo Community</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <a href="/" class="logo">Travexlo</a>
+    </div>
+    <div class="nav-center">
+      <div class="search-container">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" class="search-bar" placeholder="Search posts" id="searchInput">
+      </div>
+    </div>
+    <div class="nav-right">
+      <select class="language-selector" id="languageSelector">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
+      </select>
+    </div>
+  </nav>
+
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main Layout -->
+  <main class="main-container">
+    <!-- Left Sidebar -->
+    <aside class="left-sidebar" id="leftSidebar">
+      <div class="sidebar-header">
+        <h3>Community</h3>
+        <button class="close-sidebar-btn" id="closeSidebarBtn" aria-label="Close menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <!-- All Posts -->
+        <div class="nav-item active" data-category="all">
+          <div class="nav-item-content">
+            <span class="nav-item-title">All Posts</span>
+            <span class="nav-item-desc">View all community posts</span>
+          </div>
+        </div>
+
+        <!-- Free Access Category -->
+        <div class="category-section">
+          <h4 class="category-title">Free Access</h4>
+          <div class="nav-item" data-category="korea-starter-pack">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Korea Starter Pack</span>
+              <span class="nav-item-desc">Essential guides for newcomers</span>
+            </div>
+          </div>
+          <div class="nav-item" data-category="activities">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Activities</span>
+              <span class="nav-item-desc">Things to do and explore</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Drop Category -->
+        <div class="category-section">
+          <h4 class="category-title">Weekly Drop</h4>
+          <div class="nav-item" data-category="local-area">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Local Area</span>
+              <span class="nav-item-desc">Neighborhood discoveries</span>
+            </div>
+          </div>
+          <div class="nav-item" data-category="travel-area">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Travel Area</span>
+              <span class="nav-item-desc">Destinations worth visiting</span>
+            </div>
+          </div>
+          <div class="nav-item" data-category="restaurants">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Restaurants</span>
+              <span class="nav-item-desc">Food recommendations</span>
+            </div>
+          </div>
+          <div class="nav-item" data-category="korean-language">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Korean Language</span>
+              <span class="nav-item-desc">Language learning tips</span>
+            </div>
+          </div>
+          <div class="nav-item" data-category="audio-guides">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Audio Guides</span>
+              <span class="nav-item-desc">Listen and learn</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Category -->
+        <div class="category-section">
+          <h4 class="category-title">Service</h4>
+          <div class="nav-item" data-category="rent">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Rent</span>
+              <span class="nav-item-desc">Housing and rental services</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Center Column - Post Feed -->
+    <section class="center-feed">
+      <div class="feed-header">
+        <h2 id="feedTitle">All Posts</h2>
+        <div class="feed-sort">
+          <button class="sort-btn active" data-sort="hot">Hot</button>
+          <button class="sort-btn" data-sort="new">New</button>
+          <button class="sort-btn" data-sort="top">Top</button>
+        </div>
+      </div>
+      <div class="posts-container" id="postsContainer">
+        <!-- Posts will be rendered here by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Right Sidebar -->
+    <aside class="right-sidebar">
+      <!-- About Community Box -->
+      <div class="sidebar-box">
+        <h3 class="sidebar-box-title">About Community</h3>
+        <p class="sidebar-box-content">
+          Welcome to Travexlo! Your go-to community for exploring Korea. 
+          Share experiences, discover hidden gems, connect with fellow travelers, 
+          and get insider tips from locals and expats alike.
+        </p>
+        <div class="community-stats">
+          <div class="stat">
+            <span class="stat-number">12.5k</span>
+            <span class="stat-label">Members</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">342</span>
+            <span class="stat-label">Online</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Posting Rules Box -->
+      <div class="sidebar-box">
+        <h3 class="sidebar-box-title">Posting Rules</h3>
+        <ul class="rules-list">
+          <li>Be respectful and helpful to other members</li>
+          <li>No spam or self-promotion without approval</li>
+          <li>Use appropriate category tags for your posts</li>
+          <li>Share accurate and verified information</li>
+          <li>No offensive or inappropriate content</li>
+          <li>Keep discussions relevant to the topic</li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
