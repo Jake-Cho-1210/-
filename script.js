@@ -439,6 +439,7 @@ let searchQuery = '';
 let currentUser = null;
 let currentPostId = null;
 let feedScrollPosition = 0;
+let savedFeedState = null;
 let isDetailView = false;
 let isMyPageView = false;
 
@@ -796,8 +797,15 @@ function openPostDetail(postId) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
   
-  // Save scroll position before switching view
-  feedScrollPosition = window.scrollY;
+  // Save complete feed state before switching view
+  savedFeedState = {
+    category: currentCategory,
+    sort: currentSort,
+    language: currentLanguage,
+    activityType: currentActivityType,
+    search: searchQuery,
+    scrollY: window.scrollY
+  };
   
   // Increment view count
   const viewCount = incrementViewCount(postId);
@@ -932,16 +940,45 @@ function closePostDetail() {
   isDetailView = false;
   currentPostId = null;
   
+  // Restore saved feed state if available
+  if (savedFeedState) {
+    currentCategory = savedFeedState.category;
+    currentSort = savedFeedState.sort;
+    currentLanguage = savedFeedState.language;
+    currentActivityType = savedFeedState.activityType;
+    searchQuery = savedFeedState.search;
+    searchInput.value = searchQuery;
+    
+    // Update nav active state
+    navItems.forEach(item => {
+      item.classList.toggle('active', item.dataset.category === currentCategory);
+    });
+    
+    // Update sort buttons active state
+    sortButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.sort === currentSort);
+    });
+    
+    // Update language tabs active state
+    langTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.lang === currentLanguage);
+    });
+  }
+  
   // Show the feed header again
   feedHeader.style.display = 'flex';
+  updateFeedTabs();
   
   // Re-render posts
   renderPosts();
   
-  // Restore scroll position
+  // Restore scroll position after render
+  const scrollY = savedFeedState ? savedFeedState.scrollY : 0;
   setTimeout(() => {
-    window.scrollTo(0, feedScrollPosition);
+    window.scrollTo(0, scrollY);
   }, 0);
+  
+  savedFeedState = null;
 }
 
 // Handle vote in detail view
