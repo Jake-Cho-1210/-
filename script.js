@@ -797,6 +797,19 @@ function openPostDetail(postId) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
   
+  // Find topmost visible post card as anchor
+  let anchorPostId = null;
+  let anchorOffset = 0;
+  const postCards = document.querySelectorAll('.post-card[data-post-id]');
+  for (const card of postCards) {
+    const rect = card.getBoundingClientRect();
+    if (rect.top >= -50) {
+      anchorPostId = card.dataset.postId;
+      anchorOffset = rect.top;
+      break;
+    }
+  }
+  
   // Save complete feed state before switching view
   savedFeedState = {
     category: currentCategory,
@@ -804,7 +817,9 @@ function openPostDetail(postId) {
     language: currentLanguage,
     activityType: currentActivityType,
     search: searchQuery,
-    scrollY: window.scrollY
+    scrollY: window.scrollY,
+    anchorPostId: anchorPostId,
+    anchorOffset: anchorOffset
   };
   
   // Increment view count
@@ -972,13 +987,30 @@ function closePostDetail() {
   // Re-render posts
   renderPosts();
   
-  // Restore scroll position after render
-  const scrollY = savedFeedState ? savedFeedState.scrollY : 0;
-  setTimeout(() => {
-    window.scrollTo(0, scrollY);
-  }, 0);
+  // Restore scroll position using anchor element with retry
+  const anchorId = savedFeedState ? savedFeedState.anchorPostId : null;
+  const anchorOffset = savedFeedState ? savedFeedState.anchorOffset : 0;
+  const fallbackScrollY = savedFeedState ? savedFeedState.scrollY : 0;
   
-  savedFeedState = null;
+  let retryCount = 0;
+  function restoreScrollPosition() {
+    if (anchorId) {
+      const anchorEl = document.querySelector(`.post-card[data-post-id="${anchorId}"]`);
+      if (anchorEl) {
+        window.scrollTo(0, anchorEl.offsetTop - anchorOffset);
+        savedFeedState = null;
+        return;
+      }
+    }
+    if (retryCount < 10) {
+      retryCount++;
+      requestAnimationFrame(restoreScrollPosition);
+    } else {
+      window.scrollTo(0, fallbackScrollY);
+      savedFeedState = null;
+    }
+  }
+  requestAnimationFrame(restoreScrollPosition);
 }
 
 // Handle vote in detail view
