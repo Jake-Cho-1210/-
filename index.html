@@ -17,10 +17,7 @@
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
-      <a href="/" class="logo">
-  <img src="assets/travexlo_logo.png" alt="Travexlo logo" class="logo-img">
-  Travexlo
-</a>
+      <a href="/" class="logo" id="logoLink"><img src="assets/logo.png" alt="Travexlo logo" class="logo-img">Travexlo</a>
     </div>
     <div class="nav-center">
       <div class="search-container">
@@ -58,10 +55,16 @@
         </svg>
       </button>
 
-      <!-- Auth Buttons (shown when logged out) -->
-      <div class="auth-buttons" id="authButtons">
-        <button class="auth-btn login-btn" id="loginBtn">Log in</button>
-      </div>
+      <!-- Login Button (shown when logged out) -->
+      <button class="auth-btn login-btn" id="loginBtn">Log in</button>
+
+      <!-- Profile Button (circular, shown when logged in, replaces Login) -->
+      <button class="profile-btn" id="profileBtn" aria-label="My Page" style="display: none;">
+        <span id="profileBtnContent"></span>
+      </button>
+
+      <!-- Hidden Auth Buttons container for compatibility -->
+      <div class="auth-buttons" id="authButtons" style="display: none;"></div>
 
       <!-- User Menu (shown when logged in) -->
       <div class="user-menu" id="userMenu" style="display: none;">
@@ -86,11 +89,6 @@
           </button>
         </div>
       </div>
-
-      <!-- Profile Button (circular) -->
-      <button class="profile-btn" id="profileBtn" aria-label="My Page">
-        <span id="profileBtnContent"></span>
-      </button>
     </div>
   </nav>
 

@@ -508,15 +508,17 @@ function loadUser() {
 
 function updateAuthUI() {
   if (currentUser) {
-    authButtons.style.display = 'none';
-    userMenu.style.display = 'block';
+    // Logged in: hide Login, show Profile button and User Menu
+    loginBtn.style.display = 'none';
     profileBtn.style.display = 'flex';
+    userMenu.style.display = 'block';
     usernameDisplay.textContent = getDisplayNameWithFlag(currentUser);
     renderProfileButton();
   } else {
-    authButtons.style.display = 'flex';
-    userMenu.style.display = 'none';
+    // Logged out: show Login, hide Profile button and User Menu
+    loginBtn.style.display = 'block';
     profileBtn.style.display = 'none';
+    userMenu.style.display = 'none';
   }
 }
 
