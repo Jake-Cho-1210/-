@@ -1418,16 +1418,88 @@ function getVoteState(postId) {
   return { userVote: 0, voteCount: 0 }; // Placeholder function
 }
 
+// Get or create stable user ID for like tracking
+function getLocalUserId() {
+  let localUserId = localStorage.getItem('travexlo_local_user_id');
+  if (!localUserId) {
+    localUserId = 'anon_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('travexlo_local_user_id', localUserId);
+  }
+  return localUserId;
+}
+
+// Get current user's unique ID (logged in or anonymous)
+function getCurrentUserId() {
+  if (currentUser && currentUser.id) return currentUser.id;
+  if (currentUser && currentUser.email) return currentUser.email;
+  if (currentUser && currentUser.name) return 'user_' + currentUser.name;
+  return getLocalUserId();
+}
+
+// Load likes data from localStorage
+function loadLikesData() {
+  const data = localStorage.getItem('travexlo_likes');
+  return data ? JSON.parse(data) : {};
+}
+
+// Save likes data to localStorage
+function saveLikesData(data) {
+  localStorage.setItem('travexlo_likes', JSON.stringify(data));
+}
+
+// Get like state for a post
 function getLikeState(postId) {
-  return { liked: false, count: 0 }; // Placeholder function
+  const likesData = loadLikesData();
+  const postLikes = likesData[postId] || { count: 0, likedBy: {} };
+  const userId = getCurrentUserId();
+  const liked = !!postLikes.likedBy[userId];
+  
+  // Get base count from post data
+  const post = posts.find(p => p.id === postId);
+  const baseCount = post ? (post.likes || 0) : 0;
+  
+  return {
+    liked: liked,
+    count: baseCount + postLikes.count
+  };
+}
+
+// Toggle like for a post
+function toggleLike(postId) {
+  const likesData = loadLikesData();
+  const userId = getCurrentUserId();
+  
+  if (!likesData[postId]) {
+    likesData[postId] = { count: 0, likedBy: {} };
+  }
+  
+  const postLikes = likesData[postId];
+  const wasLiked = !!postLikes.likedBy[userId];
+  
+  if (wasLiked) {
+    // Unlike
+    delete postLikes.likedBy[userId];
+    postLikes.count = Math.max(0, postLikes.count - 1);
+  } else {
+    // Like
+    postLikes.likedBy[userId] = true;
+    postLikes.count = postLikes.count + 1;
+  }
+  
+  saveLikesData(likesData);
+  
+  // Get base count from post data
+  const post = posts.find(p => p.id === postId);
+  const baseCount = post ? (post.likes || 0) : 0;
+  
+  return {
+    liked: !wasLiked,
+    count: baseCount + postLikes.count
+  };
 }
 
 function getComments(postId) {
   return []; // Placeholder function
-}
-
-function toggleLike(postId) {
-  return { liked: false, count: 0 }; // Placeholder function
 }
 
 function saveVoteState(postId, userVote, voteCount) {
