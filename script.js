@@ -139,7 +139,6 @@ const posts = [
     votes: 389,
     comments: 52
   },
-  // French posts for Korea Starter Pack
   {
     id: 13,
     title: "Guide complet du metro de Seoul",
@@ -164,7 +163,6 @@ const posts = [
     comments: 19,
     language: "Francais"
   },
-  // German posts for Korea Starter Pack
   {
     id: 15,
     title: "Ultimativer Leitfaden fur Seouls U-Bahn-System",
@@ -189,7 +187,6 @@ const posts = [
     comments: 11,
     language: "Deutsch"
   },
-  // Russian posts for Korea Starter Pack
   {
     id: 17,
     title: "Polnoe rukovodstvo po metro Seula",
@@ -214,7 +211,6 @@ const posts = [
     comments: 9,
     language: "Русский"
   },
-  // French Audio Guides
   {
     id: 19,
     title: "Guide audio du palais Gyeongbokgung",
@@ -239,7 +235,6 @@ const posts = [
     comments: 8,
     language: "Francais"
   },
-  // German Audio Guides
   {
     id: 21,
     title: "Audiofuhrer fur den Gyeongbokgung-Palast",
@@ -264,7 +259,6 @@ const posts = [
     comments: 6,
     language: "Deutsch"
   },
-  // Russian Audio Guides
   {
     id: 23,
     title: "Audiogid po dvortsu Kyongbokkung",
@@ -289,7 +283,6 @@ const posts = [
     comments: 5,
     language: "Русский"
   },
-  // More English Audio Guides
   {
     id: 25,
     title: "Audio Guide: Namsan Tower and Seoul Views",
@@ -327,6 +320,8 @@ let currentLanguage = 'English';
 let searchQuery = '';
 let currentUser = null;
 let currentPostId = null;
+let feedScrollPosition = 0;
+let isDetailView = false;
 
 // Get vote state from localStorage
 function getVoteState(postId) {
@@ -358,6 +353,7 @@ function saveComment(postId, comment) {
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
 const feedTitle = document.getElementById('feedTitle');
+const feedHeader = document.querySelector('.feed-header');
 const searchInput = document.getElementById('searchInput');
 const navItems = document.querySelectorAll('.nav-item');
 const sortButtons = document.querySelectorAll('.sort-btn');
@@ -400,12 +396,6 @@ const backToLoginBtn = document.getElementById('backToLoginBtn');
 
 // Theme Elements
 const themeToggleBtn = document.getElementById('themeToggleBtn');
-
-// Post Detail Elements
-const postDetailOverlay = document.getElementById('postDetailOverlay');
-const postDetailModal = document.getElementById('postDetailModal');
-const postDetailClose = document.getElementById('postDetailClose');
-const postDetailContent = document.getElementById('postDetailContent');
 
 let isSignupMode = false;
 
@@ -460,7 +450,6 @@ function openAuthModal(signup = false) {
     ? 'Already have an account? <button type="button" id="switchToLogin">Log in</button>'
     : 'Don\'t have an account? <button type="button" id="switchToSignup">Sign up</button>';
   
-  // Reset form and show auth form, hide forgot password
   authForm.reset();
   authForm.style.display = 'flex';
   forgotPasswordForm.style.display = 'none';
@@ -470,7 +459,6 @@ function openAuthModal(signup = false) {
   authModalOverlay.classList.add('active');
   emailInput.focus();
   
-  // Add event listener for switch
   const switchBtn = signup 
     ? document.getElementById('switchToLogin')
     : document.getElementById('switchToSignup');
@@ -500,7 +488,6 @@ function handleAuthSubmit(e) {
     return;
   }
   
-  // Mock auth - just store the user
   currentUser = {
     id: Date.now().toString(),
     name: name,
@@ -539,7 +526,6 @@ function handleSendResetLink() {
   const email = resetEmailInput.value.trim();
   if (!email) return;
   
-  // Show success message (mock - no actual email sent)
   resetSuccess.style.display = 'block';
   resetEmailInput.value = '';
 }
@@ -572,20 +558,21 @@ function formatCommentTime(timestamp) {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
-// Open post detail modal
+// Open post detail view (inline, not modal)
 function openPostDetail(postId) {
-  console.log('[v0] openPostDetail called with postId:', postId);
   const post = posts.find(p => p.id === postId);
-  console.log('[v0] Found post:', post);
-  if (!post) {
-    console.log('[v0] Post not found, returning');
-    return;
-  }
-  console.log('[v0] postDetailOverlay element:', postDetailOverlay);
+  if (!post) return;
+  
+  // Save scroll position before switching view
+  feedScrollPosition = window.scrollY;
   
   currentPostId = postId;
+  isDetailView = true;
   const voteState = getVoteState(postId);
   const comments = getComments(postId);
+  
+  // Hide the feed header
+  feedHeader.style.display = 'none';
   
   const imageHTML = post.image 
     ? `<img src="${post.image}" alt="${post.title}" class="post-detail-image" />`
@@ -604,81 +591,102 @@ function openPostDetail(postId) {
       `).join('')
     : '<p class="no-comments">No comments yet. Be the first to comment!</p>';
   
-  postDetailContent.innerHTML = `
-    <div class="post-detail-header">
-      <div class="post-detail-vote">
-        <button class="vote-btn upvote ${voteState.userVote === 1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Upvote">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4l-8 8h5v8h6v-8h5z"/>
-          </svg>
-        </button>
-        <span class="vote-count" id="detailVoteCount">${formatVotes(voteState.voteCount)}</span>
-        <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Downvote">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
-          </svg>
-        </button>
-      </div>
-      <div class="post-detail-main">
-        <div class="post-detail-meta">
-          <span class="post-category">${post.categoryLabel}</span>
-          <span>Posted by</span>
-          <span class="post-author">u/${post.author}</span>
-          <span>•</span>
-          <span>${post.timestamp}</span>
+  postsContainer.innerHTML = `
+    <div class="post-detail-inline">
+      <button class="back-btn" id="backToFeedBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Back
+      </button>
+      <div class="post-detail-card">
+        <div class="post-detail-header">
+          <div class="post-detail-vote">
+            <button class="vote-btn upvote ${voteState.userVote === 1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Upvote">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+              </svg>
+            </button>
+            <span class="vote-count" id="detailVoteCount">${formatVotes(voteState.voteCount)}</span>
+            <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Downvote">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="post-detail-main">
+            <div class="post-detail-meta">
+              <span class="post-category">${post.categoryLabel}</span>
+              <span>Posted by</span>
+              <span class="post-author">u/${post.author}</span>
+              <span>•</span>
+              <span>${post.timestamp}</span>
+            </div>
+            <h2 class="post-detail-title">${post.title}</h2>
+            ${imageHTML}
+            <div class="post-detail-body">${post.content}</div>
+            <div class="post-detail-actions">
+              <button class="action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                  <polyline points="16 6 12 2 8 6"></polyline>
+                  <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+                Share
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Save
+              </button>
+            </div>
+          </div>
         </div>
-        <h2 class="post-detail-title">${post.title}</h2>
-        ${imageHTML}
-        <div class="post-detail-body">${post.content}</div>
-        <div class="post-detail-actions">
-          <button class="action-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-              <polyline points="16 6 12 2 8 6"></polyline>
-              <line x1="12" y1="2" x2="12" y2="15"></line>
-            </svg>
-            Share
-          </button>
-          <button class="action-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-            Save
-          </button>
+        <div class="comments-section">
+          <div class="comments-header">${comments.length + post.comments} Comments</div>
+          <div class="comment-form">
+            <textarea class="comment-input" id="commentInput" placeholder="What are your thoughts?"></textarea>
+            <button class="comment-submit" id="commentSubmit" ${!currentUser ? 'disabled title="Log in to comment"' : ''}>Comment</button>
+          </div>
+          <div class="comments-list" id="commentsList">
+            ${commentsHTML}
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="comments-section">
-      <div class="comments-header">${comments.length + post.comments} Comments</div>
-      <div class="comment-form">
-        <textarea class="comment-input" id="commentInput" placeholder="What are your thoughts?"></textarea>
-        <button class="comment-submit" id="commentSubmit" ${!currentUser ? 'disabled title="Log in to comment"' : ''}>Comment</button>
-      </div>
-      <div class="comments-list" id="commentsList">
-        ${commentsHTML}
       </div>
     </div>
   `;
   
-  console.log('[v0] Adding active class to postDetailOverlay');
-  postDetailOverlay.classList.add('active');
-  console.log('[v0] postDetailOverlay classList after adding active:', postDetailOverlay.classList);
-  postDetailModal.focus();
+  // Scroll to top
+  window.scrollTo(0, 0);
   
-  // Add event listeners for modal
-  const upvoteBtn = postDetailContent.querySelector('.vote-btn.upvote');
-  const downvoteBtn = postDetailContent.querySelector('.vote-btn.downvote');
+  // Add event listeners
+  const backBtn = document.getElementById('backToFeedBtn');
+  const upvoteBtn = postsContainer.querySelector('.vote-btn.upvote');
+  const downvoteBtn = postsContainer.querySelector('.vote-btn.downvote');
   const commentSubmit = document.getElementById('commentSubmit');
   
+  backBtn.addEventListener('click', closePostDetail);
   upvoteBtn.addEventListener('click', () => handleDetailVote(postId, 1));
   downvoteBtn.addEventListener('click', () => handleDetailVote(postId, -1));
   commentSubmit.addEventListener('click', () => handleCommentSubmit(postId));
 }
 
-// Close post detail modal
+// Close post detail and return to feed
 function closePostDetail() {
-  postDetailOverlay.classList.remove('active');
+  isDetailView = false;
   currentPostId = null;
+  
+  // Show the feed header again
+  feedHeader.style.display = 'flex';
+  
+  // Re-render posts
+  renderPosts();
+  
+  // Restore scroll position
+  setTimeout(() => {
+    window.scrollTo(0, feedScrollPosition);
+  }, 0);
 }
 
 // Handle vote in detail view
@@ -688,21 +696,19 @@ function handleDetailVote(postId, direction) {
   let newVoteCount = voteState.voteCount;
   
   if (voteState.userVote === direction) {
-    // Remove vote
     newUserVote = 0;
     newVoteCount -= direction;
   } else {
-    // Change vote
-    newVoteCount -= voteState.userVote; // Remove old vote
-    newVoteCount += direction; // Add new vote
+    newVoteCount -= voteState.userVote;
+    newVoteCount += direction;
     newUserVote = direction;
   }
   
   saveVoteState(postId, newUserVote, newVoteCount);
   
   // Update UI
-  const upvoteBtn = postDetailContent.querySelector('.vote-btn.upvote');
-  const downvoteBtn = postDetailContent.querySelector('.vote-btn.downvote');
+  const upvoteBtn = postsContainer.querySelector('.vote-btn.upvote');
+  const downvoteBtn = postsContainer.querySelector('.vote-btn.downvote');
   const voteCountEl = document.getElementById('detailVoteCount');
   
   upvoteBtn.classList.toggle('active', newUserVote === 1);
@@ -803,17 +809,14 @@ function createPostCard(post) {
 function getFilteredPosts() {
   let filtered = [...posts];
 
-  // Filter by category
   if (currentCategory !== 'all') {
     filtered = filtered.filter(post => post.category === currentCategory);
   }
 
-  // Filter by language for specific categories
   if (languageFilterCategories.includes(currentCategory)) {
     filtered = filtered.filter(post => post.language === currentLanguage);
   }
 
-  // Filter by search query
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filtered = filtered.filter(post => 
@@ -823,7 +826,6 @@ function getFilteredPosts() {
     );
   }
 
-  // Sort posts (only for non-language-filtered categories)
   if (!languageFilterCategories.includes(currentCategory)) {
     switch (currentSort) {
       case 'hot':
@@ -837,7 +839,6 @@ function getFilteredPosts() {
         break;
     }
   } else {
-    // Default sort by votes for language-filtered categories
     filtered.sort((a, b) => b.votes - a.votes);
   }
 
@@ -877,29 +878,16 @@ function renderPosts() {
   });
 
   // Add post card click listeners for opening detail view
-  const postCards = document.querySelectorAll('.post-card');
-  console.log('[v0] Found', postCards.length, 'post cards to attach click handlers');
-  
-  postCards.forEach(card => {
+  document.querySelectorAll('.post-card').forEach(card => {
     const postId = parseInt(card.dataset.postId);
     
-    // Click on card (but not on buttons) opens detail
     card.addEventListener('click', (e) => {
-      console.log('[v0] Post card clicked, postId:', postId);
-      console.log('[v0] Click target:', e.target);
-      console.log('[v0] Closest vote-btn:', e.target.closest('.vote-btn'));
-      console.log('[v0] Closest action-btn:', e.target.closest('.action-btn'));
-      
-      // Don't open if clicking on vote buttons or action buttons
       if (e.target.closest('.vote-btn') || e.target.closest('.action-btn')) {
-        console.log('[v0] Click on button, not opening detail');
         return;
       }
-      console.log('[v0] Opening post detail for postId:', postId);
       openPostDetail(postId);
     });
     
-    // Keyboard accessibility - Enter/Space opens detail
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -918,7 +906,6 @@ function handleVote(e) {
     ? voteSection.querySelector('.downvote') 
     : voteSection.querySelector('.upvote');
 
-  // Toggle active state
   if (btn.classList.contains('active')) {
     btn.classList.remove('active');
   } else {
@@ -932,15 +919,19 @@ function handleCategoryClick(e) {
   const navItem = e.currentTarget;
   const category = navItem.dataset.category;
 
-  // Update active state
+  // If in detail view, close it first
+  if (isDetailView) {
+    isDetailView = false;
+    currentPostId = null;
+    feedHeader.style.display = 'flex';
+  }
+
   navItems.forEach(item => item.classList.remove('active'));
   navItem.classList.add('active');
 
-  // Update current category and title
   currentCategory = category;
   feedTitle.textContent = categoryNames[category];
 
-  // Reset language to English when entering language-filtered categories
   if (languageFilterCategories.includes(category)) {
     currentLanguage = 'English';
     langTabs.forEach(tab => {
@@ -948,13 +939,8 @@ function handleCategoryClick(e) {
     });
   }
 
-  // Update feed tabs visibility
   updateFeedTabs();
-
-  // Re-render posts
   renderPosts();
-
-  // Close mobile sidebar
   closeMobileSidebar();
 }
 
@@ -963,14 +949,10 @@ function handleSortClick(e) {
   const btn = e.currentTarget;
   const sort = btn.dataset.sort;
 
-  // Update active state
   sortButtons.forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
-  // Update current sort
   currentSort = sort;
-
-  // Re-render posts
   renderPosts();
 }
 
@@ -979,20 +961,24 @@ function handleLanguageTabClick(e) {
   const tab = e.currentTarget;
   const lang = tab.dataset.lang;
 
-  // Update active state
   langTabs.forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
 
-  // Update current language
   currentLanguage = lang;
-
-  // Re-render posts
   renderPosts();
 }
 
 // Handle search
 function handleSearch(e) {
   searchQuery = e.target.value;
+  
+  // If in detail view, close it first
+  if (isDetailView) {
+    isDetailView = false;
+    currentPostId = null;
+    feedHeader.style.display = 'flex';
+  }
+  
   renderPosts();
 }
 
@@ -1053,23 +1039,17 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Post detail event listeners
-postDetailClose.addEventListener('click', closePostDetail);
-postDetailOverlay.addEventListener('click', (e) => {
-  if (e.target === postDetailOverlay) closePostDetail();
-});
-
 // Handle escape key to close modals/sidebars
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeMobileSidebar();
     closeAuthModal();
-    closePostDetail();
+    if (isDetailView) {
+      closePostDetail();
+    }
     userDropdown.classList.remove('active');
   }
 });
 
 // Initial render
-console.log('[v0] Starting app initialization');
 init();
-console.log('[v0] App initialized, post detail overlay element:', document.getElementById('postDetailOverlay'));
