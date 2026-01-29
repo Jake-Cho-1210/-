@@ -1,4 +1,4 @@
-// Version 2.0 - Action bar order: Like -> Comments -> Views
+// Version 3.0 - Action bar order: Like -> Comments -> Views (updated 2026-01-29)
 // Mock Post Data with language support
 const posts = [
   {
@@ -23,7 +23,8 @@ const posts = [
     timestamp: "5 hours ago",
     votes: 256,
     comments: 32,
-    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80"
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80",
+    activityType: "Hiking"
   },
   {
     id: 3,
@@ -116,7 +117,8 @@ const posts = [
     timestamp: "3 days ago",
     votes: 723,
     comments: 94,
-    image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80"
+    image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80",
+    activityType: "Party"
   },
   {
     id: 11,
@@ -295,6 +297,65 @@ const posts = [
     votes: 145,
     comments: 19,
     language: "English"
+  },
+  {
+    id: 26,
+    title: "Weekly Running Group - Han River Path",
+    content: "Join our weekly running group every Sunday at 8 AM! We meet at Yeouido Hangang Park and run along the beautiful Han River path. All paces welcome, typically 5-10km routes.",
+    category: "activities",
+    categoryLabel: "Activities",
+    author: "SeoulRunners",
+    timestamp: "1 day ago",
+    votes: 189,
+    comments: 34,
+    activityType: "Running"
+  },
+  {
+    id: 27,
+    title: "Mountain Biking Trails Near Seoul",
+    content: "Discovered some amazing mountain biking trails just 30 minutes from Seoul. Perfect for weekend adventures with varying difficulty levels from beginner to advanced.",
+    category: "activities",
+    categoryLabel: "Activities",
+    author: "BikeKorea",
+    timestamp: "2 days ago",
+    votes: 156,
+    comments: 28,
+    activityType: "Biking"
+  },
+  {
+    id: 28,
+    title: "Lantern Festival in Cheonggyecheon - This Weekend!",
+    content: "Don't miss the annual Lantern Festival along Cheonggyecheon Stream! Thousands of beautiful lanterns light up the stream every evening. Great photo opportunities and cultural performances.",
+    category: "festival",
+    categoryLabel: "Festival",
+    author: "FestivalFinder",
+    timestamp: "6 hours ago",
+    votes: 445,
+    comments: 67,
+    image: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?w=800&q=80"
+  },
+  {
+    id: 29,
+    title: "Busan International Film Festival Dates Announced",
+    content: "BIFF 2026 dates are out! October 4-13. Get ready for world premieres, celebrity appearances, and an incredible atmosphere in Haeundae.",
+    category: "festival",
+    categoryLabel: "Festival",
+    author: "FilmBuff",
+    timestamp: "1 day ago",
+    votes: 312,
+    comments: 45
+  },
+  {
+    id: 30,
+    title: "Sunset Yoga & Picnic Party at Olympic Park",
+    content: "Monthly yoga and picnic gathering at Olympic Park. Bring a mat, some snacks to share, and good vibes! All levels welcome, we have experienced instructors.",
+    category: "activities",
+    categoryLabel: "Activities",
+    author: "SeoulYogi",
+    timestamp: "4 hours ago",
+    votes: 98,
+    comments: 15,
+    activityType: "etc"
   }
 ];
 
@@ -303,6 +364,7 @@ const categoryNames = {
   'all': 'All Posts',
   'korea-starter-pack': 'Korea Starter Pack',
   'activities': 'Activities',
+  'festival': 'Festival',
   'local-area': 'Local Area',
   'travel-area': 'Travel Area',
   'restaurants': 'Restaurants',
@@ -318,6 +380,7 @@ const languageFilterCategories = ['korea-starter-pack', 'audio-guides'];
 let currentCategory = 'all';
 let currentSort = 'hot';
 let currentLanguage = 'English';
+let currentActivityType = 'Running';
 let searchQuery = '';
 let currentUser = null;
 let currentPostId = null;
@@ -379,6 +442,25 @@ function incrementViewCount(postId) {
   return views[postId];
 }
 
+// Get flag emoji from nationality ISO code
+function getFlagEmoji(nationalityCode) {
+  if (!nationalityCode) return '';
+  const codePoints = nationalityCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+// Get display name with flag emoji
+function getDisplayNameWithFlag(user) {
+  if (!user) return '';
+  const nickname = user.nickname || user.name || '';
+  if (!user.nationality) return nickname;
+  const flag = getFlagEmoji(user.nationality);
+  return flag ? `${flag} ${nickname}` : nickname;
+}
+
 // Toggle like for a post
 function toggleLike(postId) {
   const state = getLikeState(postId);
@@ -398,6 +480,8 @@ const sortButtons = document.querySelectorAll('.sort-btn');
 const langTabs = document.querySelectorAll('.lang-tab');
 const feedSort = document.getElementById('feedSort');
 const feedLanguageTabs = document.getElementById('feedLanguageTabs');
+const feedActivityTabs = document.getElementById('feedActivityTabs');
+const activityTabs = document.querySelectorAll('.activity-tab');
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const leftSidebar = document.getElementById('leftSidebar');
@@ -473,7 +557,7 @@ function updateAuthUI() {
   if (currentUser) {
     authButtons.style.display = 'none';
     userMenu.style.display = 'block';
-    usernameDisplay.textContent = currentUser.name;
+    usernameDisplay.textContent = getDisplayNameWithFlag(currentUser);
   } else {
     authButtons.style.display = 'flex';
     userMenu.style.display = 'none';
@@ -605,7 +689,7 @@ function openMyPage() {
         Back
       </button>
       <div class="my-page-card">
-        <h2 class="my-page-title">My Page</h2>
+        <h2 class="my-page-title">${getDisplayNameWithFlag(currentUser)}</h2>
         <div class="my-page-stats">
           <div class="stat-item">
             <span class="stat-number">${currentUser.followers || 0}</span>
@@ -977,6 +1061,11 @@ function getFilteredPosts() {
     filtered = filtered.filter(post => post.language === currentLanguage);
   }
 
+  // Filter by activity type when viewing activities category
+  if (currentCategory === 'activities') {
+    filtered = filtered.filter(post => post.activityType === currentActivityType);
+  }
+
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filtered = filtered.filter(post => 
@@ -1010,9 +1099,15 @@ function updateFeedTabs() {
   if (languageFilterCategories.includes(currentCategory)) {
     feedSort.style.display = 'none';
     feedLanguageTabs.style.display = 'flex';
+    feedActivityTabs.style.display = 'none';
+  } else if (currentCategory === 'activities') {
+    feedSort.style.display = 'none';
+    feedLanguageTabs.style.display = 'none';
+    feedActivityTabs.style.display = 'flex';
   } else {
     feedSort.style.display = 'flex';
     feedLanguageTabs.style.display = 'none';
+    feedActivityTabs.style.display = 'none';
   }
 }
 
@@ -1042,6 +1137,15 @@ function renderPosts() {
     btn.addEventListener('click', handleLikeClick);
   });
 
+  // Add comments button listeners - clicking comment count opens detail
+  document.querySelectorAll('.post-card .comments-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const postId = parseInt(btn.closest('.post-card').dataset.postId);
+      openPostDetail(postId);
+    });
+  });
+
   // Add post card click listeners for opening detail view
   document.querySelectorAll('.post-card').forEach(card => {
     const postId = parseInt(card.dataset.postId);
@@ -1065,6 +1169,7 @@ function renderPosts() {
 
 // Handle vote clicks
 function handleVote(e) {
+  e.stopPropagation();
   const btn = e.currentTarget;
   const isUpvote = btn.classList.contains('upvote');
   const voteSection = btn.closest('.vote-section');
@@ -1148,6 +1253,18 @@ function handleLanguageTabClick(e) {
   renderPosts();
 }
 
+// Handle activity tab selection
+function handleActivityTabClick(e) {
+  const tab = e.currentTarget;
+  const activity = tab.dataset.activity;
+
+  activityTabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  currentActivityType = activity;
+  renderPosts();
+}
+
 // Handle search
 function handleSearch(e) {
   searchQuery = e.target.value;
@@ -1186,6 +1303,10 @@ sortButtons.forEach(btn => {
 
 langTabs.forEach(tab => {
   tab.addEventListener('click', handleLanguageTabClick);
+});
+
+activityTabs.forEach(tab => {
+  tab.addEventListener('click', handleActivityTabClick);
 });
 
 searchInput.addEventListener('input', handleSearch);

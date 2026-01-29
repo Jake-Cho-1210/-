@@ -47,15 +47,6 @@
         </svg>
       </button>
 
-      <!-- My Page Button -->
-      <button class="my-page-btn" id="myPageBtn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        My Page
-      </button>
-
       <!-- Auth Buttons (shown when logged out) -->
       <div class="auth-buttons" id="authButtons">
         <button class="auth-btn login-btn" id="loginBtn">Log in</button>
@@ -84,6 +75,15 @@
           </button>
         </div>
       </div>
+
+      <!-- My Page Button -->
+      <button class="my-page-btn" id="myPageBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        My Page
+      </button>
     </div>
   </nav>
 
@@ -240,6 +240,12 @@
               <span class="nav-item-desc">Running, hiking, and more available for everyone</span>
             </div>
           </div>
+          <div class="nav-item nav-item-nested" data-category="festival">
+            <div class="nav-item-content">
+              <span class="nav-item-title">Festival</span>
+              <span class="nav-item-desc">Discover Upcoming Festivals in Korea</span>
+            </div>
+          </div>
         </div>
 
         <!-- Weekly Drop Category -->
@@ -305,6 +311,13 @@
             <button class="lang-tab" data-lang="Francais">Francais</button>
             <button class="lang-tab" data-lang="Deutsch">Deutsch</button>
             <button class="lang-tab" data-lang="Русский">Русский</button>
+          </div>
+          <div class="feed-activity-tabs" id="feedActivityTabs" style="display: none;">
+            <button class="activity-tab" data-activity="Party">Party</button>
+            <button class="activity-tab active" data-activity="Running">Running</button>
+            <button class="activity-tab" data-activity="Hiking">Hiking</button>
+            <button class="activity-tab" data-activity="Biking">Biking</button>
+            <button class="activity-tab" data-activity="etc">etc</button>
           </div>
         </div>
       </div>
