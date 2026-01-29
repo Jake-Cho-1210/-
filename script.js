@@ -1410,8 +1410,30 @@ function formatAuthorDisplay(author, nationality) {
   return flag ? `${flag} ${author}` : author;
 }
 
+// Load view counts from localStorage
+function loadViewCounts() {
+  const data = localStorage.getItem('travexlo_views');
+  return data ? JSON.parse(data) : {};
+}
+
+// Save view counts to localStorage
+function saveViewCounts(data) {
+  localStorage.setItem('travexlo_views', JSON.stringify(data));
+}
+
+// Increment and persist view count for a post
 function incrementViewCount(postId) {
-  return 1; // Placeholder function
+  const viewCounts = loadViewCounts();
+  const post = posts.find(p => p.id === postId);
+  const baseCount = post ? (post.views || 0) : 0;
+  
+  if (!viewCounts[postId]) {
+    viewCounts[postId] = 0;
+  }
+  viewCounts[postId] = viewCounts[postId] + 1;
+  saveViewCounts(viewCounts);
+  
+  return baseCount + viewCounts[postId];
 }
 
 function getVoteState(postId) {
@@ -1510,6 +1532,11 @@ function saveComment(postId, comment) {
   // Placeholder function
 }
 
+// Get persisted view count for a post
 function getViewCount(postId) {
-  return 0; // Placeholder function
+  const viewCounts = loadViewCounts();
+  const post = posts.find(p => p.id === postId);
+  const baseCount = post ? (post.views || 0) : 0;
+  const addedViews = viewCounts[postId] || 0;
+  return baseCount + addedViews;
 }
