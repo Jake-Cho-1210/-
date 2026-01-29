@@ -530,7 +530,15 @@ function renderProfileButton() {
   </svg>`;
   
   if (currentUser && currentUser.profileImage) {
-    profileBtnContent.innerHTML = `<img src="${currentUser.profileImage}" alt="Profile">`;
+    // Create image with error fallback to default icon
+    const img = document.createElement('img');
+    img.src = currentUser.profileImage;
+    img.alt = 'Profile';
+    img.onerror = function() {
+      profileBtnContent.innerHTML = defaultIcon;
+    };
+    profileBtnContent.innerHTML = '';
+    profileBtnContent.appendChild(img);
   } else {
     profileBtnContent.innerHTML = defaultIcon;
   }
@@ -1374,8 +1382,32 @@ document.addEventListener('keydown', (e) => {
 init();
 
 // Helper functions declarations
+
+// Convert ISO 3166-1 alpha-2 country code to flag emoji
+function getFlagEmoji(countryCode) {
+  if (!countryCode) return '';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+// Format display name with flag emoji: "FLAG Nickname"
 function getDisplayNameWithFlag(user) {
-  return `${user.name} 🏴‍☠️`;
+  if (!user) return '';
+  const nickname = user.nickname || user.name || '';
+  if (!user.nationality) return nickname;
+  const flag = getFlagEmoji(user.nationality);
+  return flag ? `${flag} ${nickname}` : nickname;
+}
+
+// Format author display with flag emoji: "FLAG AuthorName"
+function formatAuthorDisplay(author, nationality) {
+  if (!author) return '';
+  if (!nationality) return author;
+  const flag = getFlagEmoji(nationality);
+  return flag ? `${flag} ${author}` : author;
 }
 
 function incrementViewCount(postId) {
@@ -1392,10 +1424,6 @@ function getLikeState(postId) {
 
 function getComments(postId) {
   return []; // Placeholder function
-}
-
-function formatAuthorDisplay(author, nationality) {
-  return `${author} (${nationality})`; // Placeholder function
 }
 
 function toggleLike(postId) {
