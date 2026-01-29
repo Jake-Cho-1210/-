@@ -9,7 +9,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "SeoulExplorer",
     authorNationality: "US",
-    timestamp: "2 hours ago",
+    createdAt: Date.now() - 2 * 60 * 60 * 1000,
     votes: 342,
     comments: 47,
     language: "English"
@@ -22,7 +22,7 @@ const posts = [
     categoryLabel: "Activities",
     author: "MountainHiker",
     authorNationality: "DE",
-    timestamp: "5 hours ago",
+    createdAt: Date.now() - 5 * 60 * 60 * 1000,
     votes: 256,
     comments: 32,
     image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80",
@@ -36,7 +36,7 @@ const posts = [
     categoryLabel: "Local Area",
     author: "DigitalNomadKR",
     authorNationality: "GB",
-    timestamp: "8 hours ago",
+    createdAt: Date.now() - 8 * 60 * 60 * 1000,
     votes: 189,
     comments: 28
   },
@@ -48,7 +48,7 @@ const posts = [
     categoryLabel: "Travel Area",
     author: "KoreaWanderer",
     authorNationality: "FR",
-    timestamp: "12 hours ago",
+    createdAt: Date.now() - 12 * 60 * 60 * 1000,
     votes: 421,
     comments: 56,
     image: "https://images.unsplash.com/photo-1590559899731-a382839e5549?w=800&q=80"
@@ -61,7 +61,7 @@ const posts = [
     categoryLabel: "Restaurants",
     author: "FoodieSeoul",
     authorNationality: "CA",
-    timestamp: "1 day ago",
+    createdAt: Date.now() - 24 * 60 * 60 * 1000,
     votes: 534,
     comments: 72,
     image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800&q=80"
@@ -74,7 +74,7 @@ const posts = [
     categoryLabel: "Korean Language",
     author: "LanguageLearner",
     authorNationality: "US",
-    timestamp: "1 day ago",
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     votes: 287,
     comments: 41
   },
@@ -86,7 +86,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "HistoryBuff",
     authorNationality: "GB",
-    timestamp: "2 days ago",
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     votes: 167,
     comments: 23,
     language: "English"
@@ -99,7 +99,7 @@ const posts = [
     categoryLabel: "Rent",
     author: "GangnamResident",
     authorNationality: "US",
-    timestamp: "2 days ago",
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     votes: 45,
     comments: 18
   },
@@ -111,7 +111,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "KoreanBasics",
     authorNationality: "CA",
-    timestamp: "3 days ago",
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     votes: 612,
     comments: 89,
     language: "English"
@@ -124,7 +124,7 @@ const posts = [
     categoryLabel: "Activities",
     author: "SpringWatcher",
     authorNationality: "JP",
-    timestamp: "3 days ago",
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     votes: 723,
     comments: 94,
     image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80",
@@ -138,7 +138,7 @@ const posts = [
     categoryLabel: "Rent",
     author: "HousingHelper",
     authorNationality: "AU",
-    timestamp: "4 days ago",
+    createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
     votes: 234,
     comments: 45
   },
@@ -150,7 +150,7 @@ const posts = [
     categoryLabel: "Travel Area",
     author: "SeafoodFan",
     authorNationality: "NL",
-    timestamp: "4 days ago",
+    createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
     votes: 389,
     comments: 52
   },
@@ -162,7 +162,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "SeoulFrancais",
     authorNationality: "FR",
-    timestamp: "1 day ago",
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     votes: 156,
     comments: 23,
     language: "Français"
@@ -175,7 +175,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "KoreanBasicsFR",
     authorNationality: "FR",
-    timestamp: "2 days ago",
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     votes: 134,
     comments: 19,
     language: "Français"
@@ -188,7 +188,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "SeoulDeutsch",
     authorNationality: "DE",
-    timestamp: "2 days ago",
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     votes: 98,
     comments: 14,
     language: "Deutsch"
@@ -201,7 +201,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "KoreanBasicsDE",
     authorNationality: "DE",
-    timestamp: "3 days ago",
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     votes: 87,
     comments: 11,
     language: "Deutsch"
@@ -214,7 +214,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "SeoulRussian",
     authorNationality: "RU",
-    timestamp: "3 days ago",
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     votes: 87,
     comments: 11,
     language: "Русский"
@@ -227,7 +227,7 @@ const posts = [
     categoryLabel: "Korea Starter Pack",
     author: "KoreanBasicsRU",
     authorNationality: "RU",
-    timestamp: "4 days ago",
+    createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
     votes: 76,
     comments: 9,
     language: "Русский"
@@ -240,7 +240,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "HistoireFR",
     authorNationality: "FR",
-    timestamp: "3 days ago",
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     votes: 78,
     comments: 12,
     language: "Français"
@@ -253,7 +253,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "AudioGuideFR",
     authorNationality: "BE",
-    timestamp: "5 days ago",
+    createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
     votes: 65,
     comments: 8,
     language: "Français"
@@ -266,7 +266,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "GeschichteDE",
     authorNationality: "AT",
-    timestamp: "4 days ago",
+    createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
     votes: 65,
     comments: 8,
     language: "Deutsch"
@@ -279,7 +279,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "AudioGuideDE",
     authorNationality: "CH",
-    timestamp: "6 days ago",
+    createdAt: Date.now() - 6 * 24 * 60 * 60 * 1000,
     votes: 54,
     comments: 6,
     language: "Deutsch"
@@ -292,7 +292,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "IstoriyaRU",
     authorNationality: "RU",
-    timestamp: "5 days ago",
+    createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
     votes: 54,
     comments: 6,
     language: "Русский"
@@ -305,7 +305,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "AudioGuideRU",
     authorNationality: "RU",
-    timestamp: "7 days ago",
+    createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
     votes: 43,
     comments: 5,
     language: "Русский"
@@ -318,7 +318,7 @@ const posts = [
     categoryLabel: "Audio Guides",
     author: "SeoulGuides",
     authorNationality: "US",
-    timestamp: "3 days ago",
+    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
     votes: 145,
     comments: 19,
     language: "English"
@@ -331,7 +331,7 @@ const posts = [
     categoryLabel: "Activities",
     author: "SeoulRunners",
     authorNationality: "IE",
-    timestamp: "1 day ago",
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     votes: 189,
     comments: 34,
     activityType: "Running"
@@ -344,7 +344,7 @@ const posts = [
     categoryLabel: "Activities",
     author: "BikeKorea",
     authorNationality: "NL",
-    timestamp: "2 days ago",
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
     votes: 156,
     comments: 28,
     activityType: "Biking"
@@ -357,7 +357,7 @@ const posts = [
     categoryLabel: "Festival",
     author: "FestivalFinder",
     authorNationality: "ES",
-    timestamp: "6 hours ago",
+    createdAt: Date.now() - 6 * 60 * 60 * 1000,
     votes: 445,
     comments: 67,
     image: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?w=800&q=80"
@@ -370,7 +370,7 @@ const posts = [
     categoryLabel: "Festival",
     author: "FilmBuff",
     authorNationality: "IT",
-    timestamp: "1 day ago",
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
     votes: 312,
     comments: 45
   },
@@ -382,12 +382,36 @@ const posts = [
     categoryLabel: "Activities",
     author: "SeoulYogi",
     authorNationality: "SE",
-    timestamp: "4 hours ago",
+    createdAt: Date.now() - 4 * 60 * 60 * 1000,
     votes: 98,
     comments: 15,
     activityType: "etc"
   }
 ];
+
+// Format timestamp as relative time
+function formatTimeAgo(createdAt) {
+  const now = Date.now();
+  const diff = now - createdAt;
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
+// Update all visible timestamps without full re-render
+function refreshTimestamps() {
+  document.querySelectorAll('[data-created-at]').forEach(el => {
+    const createdAt = parseInt(el.dataset.createdAt);
+    if (createdAt) {
+      el.textContent = formatTimeAgo(createdAt);
+    }
+  });
+}
 
 // Category name mapping
 const categoryNames = {
@@ -482,6 +506,9 @@ function init() {
   loadUser();
   renderProfileButton();
   renderPosts();
+  
+  // Auto-refresh timestamps every 60 seconds
+  setInterval(refreshTimestamps, 60000);
 }
 
 // Theme Functions
@@ -830,7 +857,7 @@ function openPostDetail(postId) {
               <span>Posted by</span>
               <span class="post-author">${formatAuthorDisplay(post.author, post.authorNationality)}</span>
               <span>•</span>
-              <span>${post.timestamp}</span>
+              <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
             </div>
             <h2 class="post-detail-title">${post.title}</h2>
             ${imageHTML}
@@ -1004,7 +1031,7 @@ function createPostCard(post) {
           <span>Posted by</span>
           <span class="post-author">${formatAuthorDisplay(post.author, post.authorNationality)}</span>
           <span>•</span>
-          <span>${post.timestamp}</span>
+          <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
         </div>
         <h3 class="post-title">${post.title}</h3>
         ${imageHTML}
