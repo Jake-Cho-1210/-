@@ -1384,3 +1384,14 @@ body {
 .my-page-form .form-submit:hover {
   background-color: var(--color-primary-hover);
 }
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-img {
+  height: 1.2em;
+  width: auto;
+}
