@@ -783,6 +783,33 @@ body {
   height: 16px;
 }
 
+/* Like Button */
+.like-btn {
+  transition: color 0.15s;
+}
+
+.like-btn.liked {
+  color: #e74c3c;
+}
+
+.like-btn:hover {
+  color: #e74c3c;
+}
+
+.like-count {
+  margin-left: 2px;
+}
+
+/* View Count */
+.view-count-display {
+  cursor: default;
+  color: var(--color-text-muted);
+}
+
+.view-count-display:hover {
+  background-color: transparent;
+}
+
 /* Right Sidebar */
 .right-sidebar {
   position: sticky;

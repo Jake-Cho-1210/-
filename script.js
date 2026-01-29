@@ -350,6 +350,42 @@ function saveComment(postId, comment) {
   localStorage.setItem('postComments', JSON.stringify(comments));
 }
 
+// Get like state from localStorage
+function getLikeState(postId) {
+  const likes = JSON.parse(localStorage.getItem('postLikes') || '{}');
+  return likes[postId] || { liked: false, count: 0 };
+}
+
+// Save like state to localStorage
+function saveLikeState(postId, liked, count) {
+  const likes = JSON.parse(localStorage.getItem('postLikes') || '{}');
+  likes[postId] = { liked, count };
+  localStorage.setItem('postLikes', JSON.stringify(likes));
+}
+
+// Get view count from localStorage
+function getViewCount(postId) {
+  const views = JSON.parse(localStorage.getItem('postViews') || '{}');
+  return views[postId] || 0;
+}
+
+// Increment view count in localStorage
+function incrementViewCount(postId) {
+  const views = JSON.parse(localStorage.getItem('postViews') || '{}');
+  views[postId] = (views[postId] || 0) + 1;
+  localStorage.setItem('postViews', JSON.stringify(views));
+  return views[postId];
+}
+
+// Toggle like for a post
+function toggleLike(postId) {
+  const state = getLikeState(postId);
+  const newLiked = !state.liked;
+  const newCount = newLiked ? state.count + 1 : state.count - 1;
+  saveLikeState(postId, newLiked, newCount);
+  return { liked: newLiked, count: newCount };
+}
+
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
 const feedTitle = document.getElementById('feedTitle');
@@ -560,20 +596,19 @@ function formatCommentTime(timestamp) {
 
 // Open post detail view (inline, not modal)
 function openPostDetail(postId) {
-  console.log('[v0] openPostDetail called with postId:', postId);
   const post = posts.find(p => p.id === postId);
-  if (!post) {
-    console.log('[v0] Post not found!');
-    return;
-  }
-  console.log('[v0] Found post, switching to detail view');
+  if (!post) return;
   
   // Save scroll position before switching view
   feedScrollPosition = window.scrollY;
   
+  // Increment view count
+  const viewCount = incrementViewCount(postId);
+  
   currentPostId = postId;
   isDetailView = true;
   const voteState = getVoteState(postId);
+  const likeState = getLikeState(postId);
   const comments = getComments(postId);
   
   // Hide the feed header
@@ -631,20 +666,19 @@ function openPostDetail(postId) {
             ${imageHTML}
             <div class="post-detail-body">${post.content}</div>
             <div class="post-detail-actions">
-              <button class="action-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                  <polyline points="16 6 12 2 8 6"></polyline>
-                  <line x1="12" y1="2" x2="12" y2="15"></line>
+              <button class="action-btn like-btn ${likeState.liked ? 'liked' : ''}" id="detailLikeBtn" data-post-id="${post.id}" aria-label="Like">
+                <svg viewBox="0 0 24 24" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
-                Share
+                <span class="like-count" id="detailLikeCount">${likeState.count}</span>
               </button>
-              <button class="action-btn">
+              <span class="action-btn view-count-display" aria-label="Views">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                Save
-              </button>
+                ${viewCount}
+              </span>
             </div>
           </div>
         </div>
@@ -664,18 +698,30 @@ function openPostDetail(postId) {
   
   // Scroll to top
   window.scrollTo(0, 0);
-  console.log('[v0] Detail view rendered, postsContainer innerHTML length:', postsContainer.innerHTML.length);
   
   // Add event listeners
   const backBtn = document.getElementById('backToFeedBtn');
   const upvoteBtn = postsContainer.querySelector('.vote-btn.upvote');
   const downvoteBtn = postsContainer.querySelector('.vote-btn.downvote');
   const commentSubmit = document.getElementById('commentSubmit');
+  const detailLikeBtn = document.getElementById('detailLikeBtn');
   
   backBtn.addEventListener('click', closePostDetail);
   upvoteBtn.addEventListener('click', () => handleDetailVote(postId, 1));
   downvoteBtn.addEventListener('click', () => handleDetailVote(postId, -1));
   commentSubmit.addEventListener('click', () => handleCommentSubmit(postId));
+  detailLikeBtn.addEventListener('click', () => handleDetailLike(postId));
+}
+
+// Handle like in detail view
+function handleDetailLike(postId) {
+  const newState = toggleLike(postId);
+  const btn = document.getElementById('detailLikeBtn');
+  const svg = btn.querySelector('svg');
+  
+  btn.classList.toggle('liked', newState.liked);
+  svg.setAttribute('fill', newState.liked ? 'currentColor' : 'none');
+  document.getElementById('detailLikeCount').textContent = newState.count;
 }
 
 // Close post detail and return to feed
@@ -747,6 +793,8 @@ function handleCommentSubmit(postId) {
 // Create post card HTML
 function createPostCard(post) {
   const voteState = getVoteState(post.id);
+  const likeState = getLikeState(post.id);
+  const viewCount = getViewCount(post.id);
   const imageHTML = post.image 
     ? `<div class="post-image-container">
         <img 
@@ -791,20 +839,19 @@ function createPostCard(post) {
             </svg>
             ${post.comments + getComments(post.id).length} Comments
           </button>
-          <button class="action-btn share-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-              <polyline points="16 6 12 2 8 6"></polyline>
-              <line x1="12" y1="2" x2="12" y2="15"></line>
+          <button class="action-btn like-btn ${likeState.liked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like">
+            <svg viewBox="0 0 24 24" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
             </svg>
-            Share
+            <span class="like-count">${likeState.count}</span>
           </button>
-          <button class="action-btn save-btn">
+          <span class="action-btn view-count-display" aria-label="Views">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
             </svg>
-            Save
-          </button>
+            ${viewCount}
+          </span>
         </div>
       </div>
     </article>
@@ -883,17 +930,19 @@ function renderPosts() {
     btn.addEventListener('click', handleVote);
   });
 
+  // Add like button listeners
+  document.querySelectorAll('.post-card .like-btn').forEach(btn => {
+    btn.addEventListener('click', handleLikeClick);
+  });
+
   // Add post card click listeners for opening detail view
   document.querySelectorAll('.post-card').forEach(card => {
     const postId = parseInt(card.dataset.postId);
     
     card.addEventListener('click', (e) => {
-      console.log('[v0] Post card clicked, postId:', postId);
       if (e.target.closest('.vote-btn') || e.target.closest('.action-btn')) {
-        console.log('[v0] Clicked on button, ignoring');
         return;
       }
-      console.log('[v0] Opening post detail');
       openPostDetail(postId);
     });
     
@@ -921,6 +970,20 @@ function handleVote(e) {
     btn.classList.add('active');
     otherBtn.classList.remove('active');
   }
+}
+
+// Handle like button clicks
+function handleLikeClick(e) {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const postId = parseInt(btn.dataset.postId);
+  const newState = toggleLike(postId);
+  
+  // Update UI
+  btn.classList.toggle('liked', newState.liked);
+  const svg = btn.querySelector('svg');
+  svg.setAttribute('fill', newState.liked ? 'currentColor' : 'none');
+  btn.querySelector('.like-count').textContent = newState.count;
 }
 
 // Handle category selection
