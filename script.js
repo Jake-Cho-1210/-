@@ -1,4 +1,4 @@
-// Mock Post Data
+// Mock Post Data with language support
 const posts = [
   {
     id: 1,
@@ -9,7 +9,8 @@ const posts = [
     author: "SeoulExplorer",
     timestamp: "2 hours ago",
     votes: 342,
-    comments: 47
+    comments: 47,
+    language: "English"
   },
   {
     id: 2,
@@ -78,7 +79,8 @@ const posts = [
     author: "HistoryBuff",
     timestamp: "2 days ago",
     votes: 167,
-    comments: 23
+    comments: 23,
+    language: "English"
   },
   {
     id: 8,
@@ -100,7 +102,8 @@ const posts = [
     author: "KoreanBasics",
     timestamp: "3 days ago",
     votes: 612,
-    comments: 89
+    comments: 89,
+    language: "English"
   },
   {
     id: 10,
@@ -135,15 +138,170 @@ const posts = [
     timestamp: "4 days ago",
     votes: 389,
     comments: 52
+  },
+  // French posts for Korea Starter Pack
+  {
+    id: 13,
+    title: "Guide complet du metro de Seoul",
+    content: "Apres 3 ans a Seoul, j'ai compile tout ce que vous devez savoir sur le metro. Des cartes T-money aux astuces de transfert, ce guide couvre tout. Le metro de Seoul est l'un des systemes de transport en commun les plus efficaces au monde.",
+    category: "korea-starter-pack",
+    categoryLabel: "Korea Starter Pack",
+    author: "SeoulFrancais",
+    timestamp: "1 day ago",
+    votes: 156,
+    comments: 23,
+    language: "Francais"
+  },
+  {
+    id: 14,
+    title: "Phrases essentielles en coreen pour votre premiere semaine",
+    content: "Liste de 50 phrases essentielles en coreen qui vous aideront a survivre votre premiere semaine. De la commande de nourriture aux demandes de direction, ces phrases sont pratiques et faciles a retenir.",
+    category: "korea-starter-pack",
+    categoryLabel: "Korea Starter Pack",
+    author: "KoreanBasicsFR",
+    timestamp: "2 days ago",
+    votes: 134,
+    comments: 19,
+    language: "Francais"
+  },
+  // German posts for Korea Starter Pack
+  {
+    id: 15,
+    title: "Ultimativer Leitfaden fur Seouls U-Bahn-System",
+    content: "Nach 3 Jahren in Seoul habe ich alles zusammengestellt, was Sie uber die U-Bahn wissen mussen. Von T-Money-Karten bis hin zu Umsteigetipps deckt dieser Leitfaden alles ab. Die Seoul Metro ist eines der effizientesten offentlichen Verkehrssysteme der Welt.",
+    category: "korea-starter-pack",
+    categoryLabel: "Korea Starter Pack",
+    author: "SeoulDeutsch",
+    timestamp: "2 days ago",
+    votes: 98,
+    comments: 14,
+    language: "Deutsch"
+  },
+  {
+    id: 16,
+    title: "Wichtige koreanische Satze fur Ihre erste Woche",
+    content: "Eine Liste von 50 wichtigen koreanischen Satzen, die Ihnen helfen werden, Ihre erste Woche zu uberstehen. Vom Essen bestellen bis zur Wegbeschreibung - diese Satze sind praktisch und leicht zu merken.",
+    category: "korea-starter-pack",
+    categoryLabel: "Korea Starter Pack",
+    author: "KoreanBasicsDE",
+    timestamp: "3 days ago",
+    votes: 87,
+    comments: 11,
+    language: "Deutsch"
+  },
+  // Russian posts for Korea Starter Pack
+  {
+    id: 17,
+    title: "Polnoe rukovodstvo po metro Seula",
+    content: "Posle 3 let zhizni v Seule ya sobral vse, chto vam nuzhno znat o metro. Ot kart T-money do sovetov po peresadkam - eto rukovodstvo okhvatyvaet vse. Metro Seula - odna iz samykh effektivnykh sistem obshchestvennogo transporta v mire.",
+    category: "korea-starter-pack",
+    categoryLabel: "Korea Starter Pack",
+    author: "SeoulRussian",
+    timestamp: "3 days ago",
+    votes: 87,
+    comments: 11,
+    language: "Русский"
+  },
+  {
+    id: 18,
+    title: "Vazhnye koreyskie frazy dlya pervoy nedeli",
+    content: "Spisok iz 50 vazhnykh koreyskikh fraz, kotorye pomogut vam perezhit pervuyu nedelyu. Ot zakaza edy do voprosov o napravlenii - eti frazy praktichny i legko zapominayutsya.",
+    category: "korea-starter-pack",
+    categoryLabel: "Korea Starter Pack",
+    author: "KoreanBasicsRU",
+    timestamp: "4 days ago",
+    votes: 76,
+    comments: 9,
+    language: "Русский"
+  },
+  // French Audio Guides
+  {
+    id: 19,
+    title: "Guide audio du palais Gyeongbokgung",
+    content: "Nouveau guide audio complet pour le palais Gyeongbokgung couvrant tous les batiments majeurs et les histoires cachees. Parfait pour les passionnes d'histoire qui veulent plus que les informations standard de la visite.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "HistoireFR",
+    timestamp: "3 days ago",
+    votes: 78,
+    comments: 12,
+    language: "Francais"
+  },
+  {
+    id: 20,
+    title: "Guide audio de Bukchon Hanok Village",
+    content: "Decouvrez l'histoire fascinante de Bukchon Hanok Village avec notre nouveau guide audio. Apprenez l'architecture traditionnelle coreenne et les histoires des familles qui y ont vecu pendant des generations.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "AudioGuideFR",
+    timestamp: "5 days ago",
+    votes: 65,
+    comments: 8,
+    language: "Francais"
+  },
+  // German Audio Guides
+  {
+    id: 21,
+    title: "Audiofuhrer fur den Gyeongbokgung-Palast",
+    content: "Neuer umfassender Audiofuhrer fur den Gyeongbokgung-Palast, der alle wichtigen Gebaude und verborgenen Geschichten abdeckt. Perfekt fur Geschichtsbegeisterte, die mehr als die Standard-Tourinformationen wollen.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "GeschichteDE",
+    timestamp: "4 days ago",
+    votes: 65,
+    comments: 8,
+    language: "Deutsch"
+  },
+  {
+    id: 22,
+    title: "Audiofuhrer fur Bukchon Hanok Village",
+    content: "Entdecken Sie die faszinierende Geschichte von Bukchon Hanok Village mit unserem neuen Audiofuhrer. Erfahren Sie mehr uber die traditionelle koreanische Architektur und die Geschichten der Familien, die hier seit Generationen leben.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "AudioGuideDE",
+    timestamp: "6 days ago",
+    votes: 54,
+    comments: 6,
+    language: "Deutsch"
+  },
+  // Russian Audio Guides
+  {
+    id: 23,
+    title: "Audiogid po dvortsu Kyongbokkung",
+    content: "Novyy kompleksnyy audiogid po dvortsu Kyongbokkung, okhvatyvayushchiy vse osnovnye zdaniya i skrytye istorii. Idealno podkhodit dlya lyubiteley istorii, kotorym nuzhno bolshe, chem standartnaya turisticheskaya informatsiya.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "IstoriyaRU",
+    timestamp: "5 days ago",
+    votes: 54,
+    comments: 6,
+    language: "Русский"
+  },
+  {
+    id: 24,
+    title: "Audiogid po derevne Bukchon Hanok",
+    content: "Otkroyte dlya sebya uvlekatelnuyu istoriyu derevni Bukchon Hanok s nashim novym audiogidom. Uznayte o traditsionnoy koreyskoy arkhitekture i istoriyakh semey, kotorye zhili zdes na protyazhenii pokoleniy.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "AudioGuideRU",
+    timestamp: "7 days ago",
+    votes: 43,
+    comments: 5,
+    language: "Русский"
+  },
+  // More English Audio Guides
+  {
+    id: 25,
+    title: "Audio Guide: Namsan Tower and Seoul Views",
+    content: "Explore Namsan Tower with our detailed audio guide. Learn about the history of this iconic landmark, the love locks tradition, and get the best photo spots. Perfect for couples and solo travelers alike.",
+    category: "audio-guides",
+    categoryLabel: "Audio Guides",
+    author: "SeoulGuides",
+    timestamp: "3 days ago",
+    votes: 145,
+    comments: 19,
+    language: "English"
   }
-];
-
-// Mock Chat Contacts
-const mockContacts = [
-  { id: 'user1', name: 'SeoulExplorer', lastMessage: 'Thanks for the tip!' },
-  { id: 'user2', name: 'MountainHiker', lastMessage: 'See you on the trail!' },
-  { id: 'user3', name: 'FoodieSeoul', lastMessage: 'That place was amazing!' },
-  { id: 'user4', name: 'KoreaWanderer', lastMessage: 'Have a great trip!' }
 ];
 
 // Category name mapping
@@ -159,13 +317,15 @@ const categoryNames = {
   'rent': 'Rent'
 };
 
+// Categories that use language tabs instead of sort tabs
+const languageFilterCategories = ['korea-starter-pack', 'audio-guides'];
+
 // State
 let currentCategory = 'all';
 let currentSort = 'hot';
+let currentLanguage = 'English';
 let searchQuery = '';
 let currentUser = null;
-let currentChatContact = null;
-let chatMessages = {};
 
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
@@ -173,6 +333,9 @@ const feedTitle = document.getElementById('feedTitle');
 const searchInput = document.getElementById('searchInput');
 const navItems = document.querySelectorAll('.nav-item');
 const sortButtons = document.querySelectorAll('.sort-btn');
+const langTabs = document.querySelectorAll('.lang-tab');
+const feedSort = document.getElementById('feedSort');
+const feedLanguageTabs = document.getElementById('feedLanguageTabs');
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const leftSidebar = document.getElementById('leftSidebar');
@@ -182,7 +345,6 @@ const sidebarOverlay = document.getElementById('sidebarOverlay');
 const authButtons = document.getElementById('authButtons');
 const userMenu = document.getElementById('userMenu');
 const loginBtn = document.getElementById('loginBtn');
-const signupBtn = document.getElementById('signupBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userMenuBtn = document.getElementById('userMenuBtn');
 const userDropdown = document.getElementById('userDropdown');
@@ -193,28 +355,23 @@ const authModalClose = document.getElementById('authModalClose');
 const authModalTitle = document.getElementById('authModalTitle');
 const authForm = document.getElementById('authForm');
 const nameGroup = document.getElementById('nameGroup');
+const nationalityGroup = document.getElementById('nationalityGroup');
 const nameInput = document.getElementById('nameInput');
+const nationalitySelect = document.getElementById('nationalitySelect');
 const emailInput = document.getElementById('emailInput');
 const passwordInput = document.getElementById('passwordInput');
 const authSubmitBtn = document.getElementById('authSubmitBtn');
 const authSwitch = document.getElementById('authSwitch');
-const switchToSignup = document.getElementById('switchToSignup');
+const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+const resetEmailInput = document.getElementById('resetEmailInput');
+const sendResetBtn = document.getElementById('sendResetBtn');
+const resetSuccess = document.getElementById('resetSuccess');
+const backToLoginBtn = document.getElementById('backToLoginBtn');
 
 // Theme Elements
 const themeToggleBtn = document.getElementById('themeToggleBtn');
-
-// Chat Elements
-const chatBtn = document.getElementById('chatBtn');
-const chatPanel = document.getElementById('chatPanel');
-const chatOverlay = document.getElementById('chatOverlay');
-const chatCloseBtn = document.getElementById('chatCloseBtn');
-const chatContacts = document.getElementById('chatContacts');
-const chatNoSelection = document.getElementById('chatNoSelection');
-const chatThread = document.getElementById('chatThread');
-const chatThreadName = document.getElementById('chatThreadName');
-const chatMessages_ = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const chatSendBtn = document.getElementById('chatSendBtn');
 
 let isSignupMode = false;
 
@@ -222,9 +379,7 @@ let isSignupMode = false;
 function init() {
   loadTheme();
   loadUser();
-  loadChatMessages();
   renderPosts();
-  renderChatContacts();
 }
 
 // Theme Functions
@@ -265,12 +420,18 @@ function openAuthModal(signup = false) {
   authModalTitle.textContent = signup ? 'Sign up' : 'Log in';
   authSubmitBtn.textContent = signup ? 'Sign up' : 'Log in';
   nameGroup.style.display = signup ? 'flex' : 'none';
+  nationalityGroup.style.display = signup ? 'flex' : 'none';
+  forgotPasswordLink.style.display = signup ? 'none' : 'block';
   authSwitch.innerHTML = signup 
     ? 'Already have an account? <button type="button" id="switchToLogin">Log in</button>'
     : 'Don\'t have an account? <button type="button" id="switchToSignup">Sign up</button>';
   
-  // Reset form
+  // Reset form and show auth form, hide forgot password
   authForm.reset();
+  authForm.style.display = 'flex';
+  forgotPasswordForm.style.display = 'none';
+  authSwitch.style.display = 'block';
+  resetSuccess.style.display = 'none';
   
   authModalOverlay.classList.add('active');
   emailInput.focus();
@@ -287,6 +448,10 @@ function openAuthModal(signup = false) {
 function closeAuthModal() {
   authModalOverlay.classList.remove('active');
   authForm.reset();
+  forgotPasswordForm.style.display = 'none';
+  authForm.style.display = 'flex';
+  authSwitch.style.display = 'block';
+  resetSuccess.style.display = 'none';
 }
 
 function handleAuthSubmit(e) {
@@ -295,6 +460,7 @@ function handleAuthSubmit(e) {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   const name = isSignupMode ? nameInput.value.trim() : email.split('@')[0];
+  const nationality = isSignupMode ? nationalitySelect.value : null;
   
   if (!email || !password || (isSignupMode && !name)) {
     return;
@@ -304,7 +470,8 @@ function handleAuthSubmit(e) {
   currentUser = {
     id: Date.now().toString(),
     name: name,
-    email: email
+    email: email,
+    nationality: nationality
   };
   
   localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -317,134 +484,36 @@ function logout() {
   localStorage.removeItem('currentUser');
   updateAuthUI();
   userDropdown.classList.remove('active');
-  
-  // Close chat if open
-  closeChatPanel();
 }
 
 function toggleUserDropdown() {
   userDropdown.classList.toggle('active');
 }
 
-// Chat Functions
-function loadChatMessages() {
-  const saved = localStorage.getItem('chatMessages');
-  if (saved) {
-    chatMessages = JSON.parse(saved);
-  } else {
-    // Initialize with some mock messages
-    chatMessages = {
-      'user1': [
-        { id: 1, from: 'user1', text: 'Hey! Love your subway guide!', time: '10:30 AM' },
-        { id: 2, from: 'me', text: 'Thanks! Let me know if you have questions.', time: '10:32 AM' },
-        { id: 3, from: 'user1', text: 'Thanks for the tip!', time: '10:35 AM' }
-      ],
-      'user2': [
-        { id: 1, from: 'user2', text: 'That hiking trail looks amazing!', time: 'Yesterday' },
-        { id: 2, from: 'me', text: 'It really is! The views are incredible.', time: 'Yesterday' },
-        { id: 3, from: 'user2', text: 'See you on the trail!', time: 'Yesterday' }
-      ]
-    };
-    saveChatMessages();
-  }
+// Forgot Password Functions
+function showForgotPasswordForm() {
+  authForm.style.display = 'none';
+  authSwitch.style.display = 'none';
+  forgotPasswordLink.style.display = 'none';
+  forgotPasswordForm.style.display = 'block';
+  resetSuccess.style.display = 'none';
+  authModalTitle.textContent = 'Reset password';
+  resetEmailInput.focus();
 }
 
-function saveChatMessages() {
-  localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+function handleSendResetLink() {
+  const email = resetEmailInput.value.trim();
+  if (!email) return;
+  
+  // Show success message (mock - no actual email sent)
+  resetSuccess.style.display = 'block';
+  resetEmailInput.value = '';
 }
 
-function openChatPanel() {
-  if (!currentUser) {
-    openAuthModal(false);
-    return;
-  }
-  chatPanel.classList.add('active');
-  chatOverlay.classList.add('active');
-}
-
-function closeChatPanel() {
-  chatPanel.classList.remove('active');
-  chatOverlay.classList.remove('active');
-  currentChatContact = null;
-  chatThread.style.display = 'none';
-  chatNoSelection.style.display = 'flex';
-  
-  // Remove active state from contacts
-  document.querySelectorAll('.chat-contact').forEach(c => c.classList.remove('active'));
-}
-
-function renderChatContacts() {
-  chatContacts.innerHTML = mockContacts.map(contact => {
-    const messages = chatMessages[contact.id] || [];
-    const lastMsg = messages.length > 0 ? messages[messages.length - 1].text : contact.lastMessage;
-    return `
-      <div class="chat-contact" data-contact-id="${contact.id}">
-        <div class="chat-contact-name">${contact.name}</div>
-        <div class="chat-contact-preview">${lastMsg}</div>
-      </div>
-    `;
-  }).join('');
-  
-  // Add click listeners
-  document.querySelectorAll('.chat-contact').forEach(el => {
-    el.addEventListener('click', () => selectChatContact(el.dataset.contactId));
-  });
-}
-
-function selectChatContact(contactId) {
-  currentChatContact = mockContacts.find(c => c.id === contactId);
-  if (!currentChatContact) return;
-  
-  // Update active state
-  document.querySelectorAll('.chat-contact').forEach(c => c.classList.remove('active'));
-  document.querySelector(`[data-contact-id="${contactId}"]`).classList.add('active');
-  
-  // Show thread
-  chatNoSelection.style.display = 'none';
-  chatThread.style.display = 'flex';
-  chatThreadName.textContent = currentChatContact.name;
-  
-  renderChatMessages();
-  chatInput.focus();
-}
-
-function renderChatMessages() {
-  if (!currentChatContact) return;
-  
-  const messages = chatMessages[currentChatContact.id] || [];
-  chatMessages_.innerHTML = messages.map(msg => `
-    <div class="chat-message ${msg.from === 'me' ? 'sent' : 'received'}">
-      ${msg.text}
-      <div class="chat-message-time">${msg.time}</div>
-    </div>
-  `).join('');
-  
-  // Scroll to bottom
-  chatMessages_.scrollTop = chatMessages_.scrollHeight;
-}
-
-function sendChatMessage() {
-  if (!currentChatContact || !chatInput.value.trim()) return;
-  
-  const text = chatInput.value.trim();
-  const now = new Date();
-  const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  
-  if (!chatMessages[currentChatContact.id]) {
-    chatMessages[currentChatContact.id] = [];
-  }
-  
-  chatMessages[currentChatContact.id].push({
-    id: Date.now(),
-    from: 'me',
-    text: text,
-    time: time
-  });
-  
-  saveChatMessages();
-  renderChatMessages();
-  renderChatContacts();
-  chatInput.value = '';
+function backToLogin() {
+  forgotPasswordForm.style.display = 'none';
+  resetSuccess.style.display = 'none';
+  openAuthModal(false);
 }
 
 // Format vote count
@@ -530,6 +599,11 @@ function getFilteredPosts() {
     filtered = filtered.filter(post => post.category === currentCategory);
   }
 
+  // Filter by language for specific categories
+  if (languageFilterCategories.includes(currentCategory)) {
+    filtered = filtered.filter(post => post.language === currentLanguage);
+  }
+
   // Filter by search query
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
@@ -540,21 +614,36 @@ function getFilteredPosts() {
     );
   }
 
-  // Sort posts
-  switch (currentSort) {
-    case 'hot':
-      filtered.sort((a, b) => (b.votes + b.comments * 2) - (a.votes + a.comments * 2));
-      break;
-    case 'new':
-      // For mock data, we'll use the ID as a proxy for newness
-      filtered.sort((a, b) => b.id - a.id);
-      break;
-    case 'top':
-      filtered.sort((a, b) => b.votes - a.votes);
-      break;
+  // Sort posts (only for non-language-filtered categories)
+  if (!languageFilterCategories.includes(currentCategory)) {
+    switch (currentSort) {
+      case 'hot':
+        filtered.sort((a, b) => (b.votes + b.comments * 2) - (a.votes + a.comments * 2));
+        break;
+      case 'new':
+        filtered.sort((a, b) => b.id - a.id);
+        break;
+      case 'top':
+        filtered.sort((a, b) => b.votes - a.votes);
+        break;
+    }
+  } else {
+    // Default sort by votes for language-filtered categories
+    filtered.sort((a, b) => b.votes - a.votes);
   }
 
   return filtered;
+}
+
+// Update feed tabs visibility based on category
+function updateFeedTabs() {
+  if (languageFilterCategories.includes(currentCategory)) {
+    feedSort.style.display = 'none';
+    feedLanguageTabs.style.display = 'flex';
+  } else {
+    feedSort.style.display = 'flex';
+    feedLanguageTabs.style.display = 'none';
+  }
 }
 
 // Render posts
@@ -584,7 +673,6 @@ function handleVote(e) {
   const btn = e.currentTarget;
   const isUpvote = btn.classList.contains('upvote');
   const voteSection = btn.closest('.vote-section');
-  const voteCount = voteSection.querySelector('.vote-count');
   const otherBtn = isUpvote 
     ? voteSection.querySelector('.downvote') 
     : voteSection.querySelector('.upvote');
@@ -611,6 +699,17 @@ function handleCategoryClick(e) {
   currentCategory = category;
   feedTitle.textContent = categoryNames[category];
 
+  // Reset language to English when entering language-filtered categories
+  if (languageFilterCategories.includes(category)) {
+    currentLanguage = 'English';
+    langTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.lang === 'English');
+    });
+  }
+
+  // Update feed tabs visibility
+  updateFeedTabs();
+
   // Re-render posts
   renderPosts();
 
@@ -629,6 +728,22 @@ function handleSortClick(e) {
 
   // Update current sort
   currentSort = sort;
+
+  // Re-render posts
+  renderPosts();
+}
+
+// Handle language tab selection
+function handleLanguageTabClick(e) {
+  const tab = e.currentTarget;
+  const lang = tab.dataset.lang;
+
+  // Update active state
+  langTabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  // Update current language
+  currentLanguage = lang;
 
   // Re-render posts
   renderPosts();
@@ -662,6 +777,10 @@ sortButtons.forEach(btn => {
   btn.addEventListener('click', handleSortClick);
 });
 
+langTabs.forEach(tab => {
+  tab.addEventListener('click', handleLanguageTabClick);
+});
+
 searchInput.addEventListener('input', handleSearch);
 
 mobileMenuBtn.addEventListener('click', openMobileSidebar);
@@ -673,7 +792,6 @@ themeToggleBtn.addEventListener('click', toggleTheme);
 
 // Auth event listeners
 loginBtn.addEventListener('click', () => openAuthModal(false));
-signupBtn.addEventListener('click', () => openAuthModal(true));
 authModalClose.addEventListener('click', closeAuthModal);
 authModalOverlay.addEventListener('click', (e) => {
   if (e.target === authModalOverlay) closeAuthModal();
@@ -682,14 +800,10 @@ authForm.addEventListener('submit', handleAuthSubmit);
 userMenuBtn.addEventListener('click', toggleUserDropdown);
 logoutBtn.addEventListener('click', logout);
 
-// Chat event listeners
-chatBtn.addEventListener('click', openChatPanel);
-chatCloseBtn.addEventListener('click', closeChatPanel);
-chatOverlay.addEventListener('click', closeChatPanel);
-chatSendBtn.addEventListener('click', sendChatMessage);
-chatInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendChatMessage();
-});
+// Forgot password event listeners
+forgotPasswordBtn.addEventListener('click', showForgotPasswordForm);
+sendResetBtn.addEventListener('click', handleSendResetLink);
+backToLoginBtn.addEventListener('click', backToLogin);
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', (e) => {
@@ -703,7 +817,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeMobileSidebar();
     closeAuthModal();
-    closeChatPanel();
     userDropdown.classList.remove('active');
   }
 });
