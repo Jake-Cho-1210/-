@@ -1,3 +1,4 @@
+// Version 2.0 - Action bar order: Like -> Comments -> Views
 // Mock Post Data with language support
 const posts = [
   {
