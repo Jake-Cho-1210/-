@@ -4,46 +4,7 @@ const posts = [
   {
     id: 1,
     title: "ARC(Alien Registration Card)",
-    content: `
-<h2>Eligibility &amp; Deadline for Application</h2>
-
-<p>Foreign nationals must register <strong>within 90 days from the date of entry</strong> into Korea.</p>
-
-<p>Failure to register may result in:</p>
-<ul>
-  <li>Imprisonment of up to <strong>1 year</strong>, or</li>
-  <li>A fine of up to <strong>10 million KRW</strong>, and/or <strong>Deportation</strong>.</li>
-</ul>
-
-<p>Registration cards <strong>may not be issued to minors under the age of 17</strong>.</p>
-
-<h2>Application Method &amp; Required Documents</h2>
-<ol>
-  <li>
-    Make an appointment on <strong>HiKorea</strong>:
-    <a href="https://www.hikorea.go.kr/Main.pt" target="_blank" rel="noopener noreferrer">
-      https://www.hikorea.go.kr/Main.pt
-    </a>
-  </li>
-  <li>
-    Apply in person at the <strong>local Immigration Office / Foreigner Office</strong>.
-  </li>
-</ol>
-
-<h3>Required documents:</h3>
-<ul>
-  <li>Passport</li>
-  <li>Proof of residence</li>
-  <li>One passport photo (3.5 cm × 4.5 cm)</li>
-  <li>Additional documents depending on your visa status</li>
-</ul>
-
-<h2>Important Notes</h2>
-<ul>
-  <li>Same legal validity as Korean ID</li>
-  <li>Must carry identification at all times</li>
-</ul>
-`,
+    content: "After living in Seoul for 3 years, I've compiled everything you need to know about the subway. From T-money cards to transfer tips, this guide covers it all. The Seoul Metro is one of the most efficient public transit systems in the world, and once you understand the basics, getting around becomes incredibly easy.",
     category: "korea-starter-pack",
     categoryLabel: "Korea Starter Pack",
     author: "Taylor Swift",
