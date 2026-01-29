@@ -797,15 +797,23 @@ function openPostDetail(postId) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
   
-  // Find topmost visible post card as anchor
+  // Find post card crossing virtual anchor line (120px from top)
+  const ANCHOR_LINE_Y = 120;
   let anchorPostId = null;
   let anchorOffset = 0;
   const postCards = document.querySelectorAll('.post-card[data-post-id]');
   for (const card of postCards) {
     const rect = card.getBoundingClientRect();
-    if (rect.top >= -50) {
+    // Card crosses anchor line if top <= anchorLineY and bottom >= anchorLineY
+    if (rect.top <= ANCHOR_LINE_Y && rect.bottom >= ANCHOR_LINE_Y) {
       anchorPostId = card.dataset.postId;
-      anchorOffset = rect.top;
+      anchorOffset = ANCHOR_LINE_Y - rect.top;
+      break;
+    }
+    // Fallback: first card below anchor line
+    if (rect.top > ANCHOR_LINE_Y && !anchorPostId) {
+      anchorPostId = card.dataset.postId;
+      anchorOffset = ANCHOR_LINE_Y - rect.top;
       break;
     }
   }
@@ -988,29 +996,39 @@ function closePostDetail() {
   renderPosts();
   
   // Restore scroll position using anchor element with retry
+  const ANCHOR_LINE_Y = 120;
   const anchorId = savedFeedState ? savedFeedState.anchorPostId : null;
   const anchorOffset = savedFeedState ? savedFeedState.anchorOffset : 0;
   const fallbackScrollY = savedFeedState ? savedFeedState.scrollY : 0;
   
   let retryCount = 0;
+  const MAX_RETRIES = 30;
+  
   function restoreScrollPosition() {
     if (anchorId) {
       const anchorEl = document.querySelector(`.post-card[data-post-id="${anchorId}"]`);
       if (anchorEl) {
-        window.scrollTo(0, anchorEl.offsetTop - anchorOffset);
+        // Scroll so anchor card is at same position relative to anchor line
+        const targetScrollY = anchorEl.offsetTop - ANCHOR_LINE_Y + anchorOffset;
+        window.scrollTo(0, Math.max(0, targetScrollY));
         savedFeedState = null;
         return;
       }
     }
-    if (retryCount < 10) {
+    if (retryCount < MAX_RETRIES) {
       retryCount++;
       requestAnimationFrame(restoreScrollPosition);
     } else {
+      // Fallback to saved scrollY
       window.scrollTo(0, fallbackScrollY);
       savedFeedState = null;
     }
   }
-  requestAnimationFrame(restoreScrollPosition);
+  
+  // Double requestAnimationFrame for layout stabilization
+  requestAnimationFrame(() => {
+    requestAnimationFrame(restoreScrollPosition);
+  });
 }
 
 // Handle vote in detail view
