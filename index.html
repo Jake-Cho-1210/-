@@ -47,24 +47,9 @@
         </svg>
       </button>
 
-      <!-- Chat Button -->
-      <button class="chat-btn" id="chatBtn" aria-label="Open chat">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-        </svg>
-      </button>
-
-      <select class="language-selector" id="languageSelector">
-        <option value="en">English</option>
-        <option value="fr">Francais</option>
-        <option value="de">Deutsch</option>
-        <option value="ru">Русский </option>
-      </select>
-
       <!-- Auth Buttons (shown when logged out) -->
       <div class="auth-buttons" id="authButtons">
         <button class="auth-btn login-btn" id="loginBtn">Log in</button>
-        <button class="auth-btn signup-btn" id="signupBtn">Sign up</button>
       </div>
 
       <!-- User Menu (shown when logged in) -->
@@ -106,67 +91,107 @@
         </svg>
       </button>
       <h2 class="modal-title" id="authModalTitle">Log in</h2>
+      
+      <!-- Login/Signup Form -->
       <form class="auth-form" id="authForm">
         <div class="form-group" id="nameGroup" style="display: none;">
           <label for="nameInput">Name</label>
           <input type="text" id="nameInput" placeholder="Enter your name">
         </div>
+        <div class="form-group" id="nationalityGroup" style="display: none;">
+          <label for="nationalitySelect">Nationality</label>
+          <select id="nationalitySelect">
+            <option value="">Select your nationality</option>
+            <optgroup label="North America">
+              <option value="US">United States</option>
+              <option value="CA">Canada</option>
+            </optgroup>
+            <optgroup label="European Union">
+              <option value="AT">Austria</option>
+              <option value="BE">Belgium</option>
+              <option value="BG">Bulgaria</option>
+              <option value="HR">Croatia</option>
+              <option value="CY">Cyprus</option>
+              <option value="CZ">Czech Republic</option>
+              <option value="DK">Denmark</option>
+              <option value="EE">Estonia</option>
+              <option value="FI">Finland</option>
+              <option value="FR">France</option>
+              <option value="DE">Germany</option>
+              <option value="GR">Greece</option>
+              <option value="HU">Hungary</option>
+              <option value="IE">Ireland</option>
+              <option value="IT">Italy</option>
+              <option value="LV">Latvia</option>
+              <option value="LT">Lithuania</option>
+              <option value="LU">Luxembourg</option>
+              <option value="MT">Malta</option>
+              <option value="NL">Netherlands</option>
+              <option value="PL">Poland</option>
+              <option value="PT">Portugal</option>
+              <option value="RO">Romania</option>
+              <option value="SK">Slovakia</option>
+              <option value="SI">Slovenia</option>
+              <option value="ES">Spain</option>
+              <option value="SE">Sweden</option>
+            </optgroup>
+            <optgroup label="Other European Countries">
+              <option value="AL">Albania</option>
+              <option value="AD">Andorra</option>
+              <option value="AM">Armenia</option>
+              <option value="AZ">Azerbaijan</option>
+              <option value="BY">Belarus</option>
+              <option value="BA">Bosnia and Herzegovina</option>
+              <option value="GE">Georgia</option>
+              <option value="IS">Iceland</option>
+              <option value="LI">Liechtenstein</option>
+              <option value="MD">Moldova</option>
+              <option value="MC">Monaco</option>
+              <option value="ME">Montenegro</option>
+              <option value="MK">North Macedonia</option>
+              <option value="NO">Norway</option>
+              <option value="RS">Serbia</option>
+              <option value="SM">San Marino</option>
+              <option value="CH">Switzerland</option>
+              <option value="TR">Turkey</option>
+              <option value="UA">Ukraine</option>
+              <option value="GB">United Kingdom</option>
+              <option value="VA">Vatican City</option>
+            </optgroup>
+          </select>
+        </div>
         <div class="form-group">
           <label for="emailInput">Email</label>
           <input type="email" id="emailInput" placeholder="Enter your email" required>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="passwordGroup">
           <label for="passwordInput">Password</label>
           <input type="password" id="passwordInput" placeholder="Enter your password" required>
         </div>
         <button type="submit" class="form-submit" id="authSubmitBtn">Log in</button>
       </form>
+      <p class="forgot-password-link" id="forgotPasswordLink">
+        <button type="button" id="forgotPasswordBtn">Forgot password?</button>
+      </p>
       <p class="auth-switch" id="authSwitch">
         Don't have an account? <button type="button" id="switchToSignup">Sign up</button>
       </p>
-    </div>
-  </div>
-
-  <!-- Chat Panel -->
-  <div class="chat-panel" id="chatPanel">
-    <div class="chat-header">
-      <h3>Messages</h3>
-      <button class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-    <div class="chat-body">
-      <div class="chat-contacts" id="chatContacts">
-        <!-- Contacts will be rendered here -->
-      </div>
-      <div class="chat-messages-container" id="chatMessagesContainer">
-        <div class="chat-no-selection" id="chatNoSelection">
-          <p>Select a conversation to start chatting</p>
+      
+      <!-- Forgot Password Form -->
+      <div id="forgotPasswordForm" style="display: none;">
+        <p class="forgot-password-desc">Enter your email address and we'll send you a link to reset your password.</p>
+        <div class="form-group">
+          <label for="resetEmailInput">Email</label>
+          <input type="email" id="resetEmailInput" placeholder="Enter your email">
         </div>
-        <div class="chat-thread" id="chatThread" style="display: none;">
-          <div class="chat-thread-header" id="chatThreadHeader">
-            <span class="chat-thread-name" id="chatThreadName"></span>
-          </div>
-          <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be rendered here -->
-          </div>
-          <div class="chat-input-container">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
-            <button class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
-          </div>
-        </div>
+        <button type="button" class="form-submit" id="sendResetBtn">Send reset link</button>
+        <p class="reset-success" id="resetSuccess" style="display: none;">If this email exists, a reset link has been sent.</p>
+        <p class="back-to-login">
+          <button type="button" id="backToLoginBtn">Back to login</button>
+        </p>
       </div>
     </div>
   </div>
-  <div class="chat-overlay" id="chatOverlay"></div>
 
   <!-- Main Layout -->
   <main class="main-container">
@@ -238,7 +263,7 @@
           <div class="nav-item" data-category="audio-guides">
             <div class="nav-item-content">
               <span class="nav-item-title">Audio Guides</span>
-              <span class="nav-item-desc">English, Francais, Deutsch, Русский </span>
+              <span class="nav-item-desc">English, Francais, Deutsch, Русский</span>
             </div>
           </div>
         </div>
@@ -260,10 +285,18 @@
     <section class="center-feed">
       <div class="feed-header">
         <h2 id="feedTitle">All Posts</h2>
-        <div class="feed-sort">
-          <button class="sort-btn active" data-sort="hot">Hot</button>
-          <button class="sort-btn" data-sort="new">New</button>
-          <button class="sort-btn" data-sort="top">Top</button>
+        <div class="feed-tabs">
+          <div class="feed-sort" id="feedSort">
+            <button class="sort-btn active" data-sort="hot">Hot</button>
+            <button class="sort-btn" data-sort="new">New</button>
+            <button class="sort-btn" data-sort="top">Top</button>
+          </div>
+          <div class="feed-language-tabs" id="feedLanguageTabs" style="display: none;">
+            <button class="lang-tab active" data-lang="English">English</button>
+            <button class="lang-tab" data-lang="Francais">Francais</button>
+            <button class="lang-tab" data-lang="Deutsch">Deutsch</button>
+            <button class="lang-tab" data-lang="Русский">Русский</button>
+          </div>
         </div>
       </div>
       <div class="posts-container" id="postsContainer">
