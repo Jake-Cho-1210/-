@@ -1237,3 +1237,123 @@ body {
   color: var(--color-text-muted);
   font-size: 0.875rem;
 }
+
+/* My Page Button */
+.my-page-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 20px;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.my-page-btn:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-text-muted);
+}
+
+/* My Page View */
+.my-page-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-page-card {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 24px;
+}
+
+.my-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.my-page-stats {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.my-page-stats .stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.my-page-stats .stat-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.my-page-stats .stat-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.my-page-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.my-page-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-page-form label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.my-page-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius);
+  font-size: 0.9375rem;
+  background-color: var(--color-white);
+  color: var(--color-text);
+}
+
+.my-page-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.my-page-form .form-submit {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.my-page-form .form-submit:hover {
+  background-color: var(--color-primary-hover);
+}

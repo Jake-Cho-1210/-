@@ -323,6 +323,7 @@ let currentUser = null;
 let currentPostId = null;
 let feedScrollPosition = 0;
 let isDetailView = false;
+let isMyPageView = false;
 
 // Get vote state from localStorage
 function getVoteState(postId) {
@@ -401,6 +402,9 @@ const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const leftSidebar = document.getElementById('leftSidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+// My Page Button
+const myPageBtn = document.getElementById('myPageBtn');
 
 // Auth Elements
 const authButtons = document.getElementById('authButtons');
@@ -529,7 +533,11 @@ function handleAuthSubmit(e) {
     id: Date.now().toString(),
     name: name,
     email: email,
-    nationality: nationality
+    nationality: nationality,
+    nickname: name,
+    age: null,
+    followers: Math.floor(Math.random() * 100),
+    following: Math.floor(Math.random() * 50)
   };
   
   localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -571,6 +579,98 @@ function backToLogin() {
   forgotPasswordForm.style.display = 'none';
   resetSuccess.style.display = 'none';
   openAuthModal(false);
+}
+
+// Open My Page view
+function openMyPage() {
+  if (!currentUser) {
+    openAuthModal(false);
+    return;
+  }
+  
+  // Save scroll position
+  feedScrollPosition = window.scrollY;
+  isMyPageView = true;
+  isDetailView = false;
+  
+  // Hide the feed header
+  feedHeader.style.display = 'none';
+  
+  postsContainer.innerHTML = `
+    <div class="my-page-view">
+      <button class="back-btn" id="backFromMyPage">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Back
+      </button>
+      <div class="my-page-card">
+        <h2 class="my-page-title">My Page</h2>
+        <div class="my-page-stats">
+          <div class="stat-item">
+            <span class="stat-number">${currentUser.followers || 0}</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">${currentUser.following || 0}</span>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+        <form class="my-page-form" id="myPageForm">
+          <div class="form-group">
+            <label for="nicknameInput">Nickname</label>
+            <input type="text" id="nicknameInput" value="${currentUser.nickname || ''}" placeholder="Enter nickname">
+          </div>
+          <div class="form-group">
+            <label for="profileNameInput">Name</label>
+            <input type="text" id="profileNameInput" value="${currentUser.name || ''}" placeholder="Enter name">
+          </div>
+          <div class="form-group">
+            <label for="ageInput">Age</label>
+            <input type="number" id="ageInput" value="${currentUser.age || ''}" placeholder="Enter age" min="1" max="120">
+          </div>
+          <button type="submit" class="form-submit">Save</button>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  window.scrollTo(0, 0);
+  
+  // Add event listeners
+  document.getElementById('backFromMyPage').addEventListener('click', closeMyPage);
+  document.getElementById('myPageForm').addEventListener('submit', handleMyPageSave);
+}
+
+// Close My Page and return to feed
+function closeMyPage() {
+  isMyPageView = false;
+  feedHeader.style.display = 'flex';
+  renderPosts();
+  setTimeout(() => {
+    window.scrollTo(0, feedScrollPosition);
+  }, 0);
+}
+
+// Handle My Page save
+function handleMyPageSave(e) {
+  e.preventDefault();
+  
+  currentUser.nickname = document.getElementById('nicknameInput').value.trim() || currentUser.nickname;
+  currentUser.name = document.getElementById('profileNameInput').value.trim() || currentUser.name;
+  const ageVal = document.getElementById('ageInput').value;
+  currentUser.age = ageVal ? parseInt(ageVal) : null;
+  
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  updateAuthUI();
+  
+  // Show success feedback
+  const btn = document.querySelector('.my-page-form .form-submit');
+  const originalText = btn.textContent;
+  btn.textContent = 'Saved!';
+  setTimeout(() => {
+    btn.textContent = originalText;
+  }, 1500);
 }
 
 // Format vote count
@@ -947,7 +1047,8 @@ function renderPosts() {
     const postId = parseInt(card.dataset.postId);
     
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.vote-btn') || e.target.closest('.action-btn')) {
+      // Block only vote and like buttons, allow comments-btn to open detail
+      if (e.target.closest('.vote-btn') || e.target.closest('.like-btn')) {
         return;
       }
       openPostDetail(postId);
@@ -1096,6 +1197,9 @@ sidebarOverlay.addEventListener('click', closeMobileSidebar);
 // Theme toggle
 themeToggleBtn.addEventListener('click', toggleTheme);
 
+// My Page event listener
+myPageBtn.addEventListener('click', openMyPage);
+
 // Auth event listeners
 loginBtn.addEventListener('click', () => openAuthModal(false));
 authModalClose.addEventListener('click', closeAuthModal);
@@ -1125,6 +1229,9 @@ document.addEventListener('keydown', (e) => {
     closeAuthModal();
     if (isDetailView) {
       closePostDetail();
+    }
+    if (isMyPageView) {
+      closeMyPage();
     }
     userDropdown.classList.remove('active');
   }
