@@ -338,8 +338,39 @@
           <li>Keep discussions relevant to the topic</li>
         </ul>
       </div>
+
+      <!-- Contact Us Box -->
+      <div class="sidebar-box">
+        <h3 class="sidebar-box-title">Contact Us</h3>
+        <div class="sidebar-box-content">
+          <p>If you have any questions about our audioguides, pricing, payments, or partnerships, feel free to contact us.</p>
+          <a href="https://instagram.com/travexlo_" target="_blank" rel="noopener noreferrer" class="instagram-link">
+            <svg class="instagram-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+            <span>@travexlo_</span>
+          </a>
+        </div>
+      </div>
     </aside>
   </main>
+
+  <!-- Post Detail Modal -->
+  <div class="modal-overlay" id="postDetailOverlay">
+    <div class="post-detail-modal" id="postDetailModal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="postDetailClose" aria-label="Close post">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="post-detail-content" id="postDetailContent">
+        <!-- Post detail will be rendered here -->
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

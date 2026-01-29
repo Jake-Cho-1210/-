@@ -326,6 +326,34 @@ let currentSort = 'hot';
 let currentLanguage = 'English';
 let searchQuery = '';
 let currentUser = null;
+let currentPostId = null;
+
+// Get vote state from localStorage
+function getVoteState(postId) {
+  const votes = JSON.parse(localStorage.getItem('postVotes') || '{}');
+  return votes[postId] || { userVote: 0, voteCount: posts.find(p => p.id === postId)?.votes || 0 };
+}
+
+// Save vote state to localStorage
+function saveVoteState(postId, userVote, voteCount) {
+  const votes = JSON.parse(localStorage.getItem('postVotes') || '{}');
+  votes[postId] = { userVote, voteCount };
+  localStorage.setItem('postVotes', JSON.stringify(votes));
+}
+
+// Get comments from localStorage
+function getComments(postId) {
+  const comments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  return comments[postId] || [];
+}
+
+// Save comment to localStorage
+function saveComment(postId, comment) {
+  const comments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  if (!comments[postId]) comments[postId] = [];
+  comments[postId].push(comment);
+  localStorage.setItem('postComments', JSON.stringify(comments));
+}
 
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
@@ -372,6 +400,12 @@ const backToLoginBtn = document.getElementById('backToLoginBtn');
 
 // Theme Elements
 const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+// Post Detail Elements
+const postDetailOverlay = document.getElementById('postDetailOverlay');
+const postDetailModal = document.getElementById('postDetailModal');
+const postDetailClose = document.getElementById('postDetailClose');
+const postDetailContent = document.getElementById('postDetailContent');
 
 let isSignupMode = false;
 
@@ -524,8 +558,175 @@ function formatVotes(votes) {
   return votes.toString();
 }
 
+// Format timestamp for comments
+function formatCommentTime(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
+// Open post detail modal
+function openPostDetail(postId) {
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  
+  currentPostId = postId;
+  const voteState = getVoteState(postId);
+  const comments = getComments(postId);
+  
+  const imageHTML = post.image 
+    ? `<img src="${post.image}" alt="${post.title}" class="post-detail-image" />`
+    : '';
+  
+  const commentsHTML = comments.length > 0
+    ? comments.map(c => `
+        <div class="comment-item">
+          <div class="comment-meta">
+            <span class="comment-author">u/${c.author}</span>
+            <span>•</span>
+            <span>${formatCommentTime(c.createdAt)}</span>
+          </div>
+          <p class="comment-text">${c.text}</p>
+        </div>
+      `).join('')
+    : '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+  
+  postDetailContent.innerHTML = `
+    <div class="post-detail-header">
+      <div class="post-detail-vote">
+        <button class="vote-btn upvote ${voteState.userVote === 1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Upvote">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+          </svg>
+        </button>
+        <span class="vote-count" id="detailVoteCount">${formatVotes(voteState.voteCount)}</span>
+        <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Downvote">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="post-detail-main">
+        <div class="post-detail-meta">
+          <span class="post-category">${post.categoryLabel}</span>
+          <span>Posted by</span>
+          <span class="post-author">u/${post.author}</span>
+          <span>•</span>
+          <span>${post.timestamp}</span>
+        </div>
+        <h2 class="post-detail-title">${post.title}</h2>
+        ${imageHTML}
+        <div class="post-detail-body">${post.content}</div>
+        <div class="post-detail-actions">
+          <button class="action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+              <polyline points="16 6 12 2 8 6"></polyline>
+              <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>
+            Share
+          </button>
+          <button class="action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="comments-section">
+      <div class="comments-header">${comments.length + post.comments} Comments</div>
+      <div class="comment-form">
+        <textarea class="comment-input" id="commentInput" placeholder="What are your thoughts?"></textarea>
+        <button class="comment-submit" id="commentSubmit" ${!currentUser ? 'disabled title="Log in to comment"' : ''}>Comment</button>
+      </div>
+      <div class="comments-list" id="commentsList">
+        ${commentsHTML}
+      </div>
+    </div>
+  `;
+  
+  postDetailOverlay.classList.add('active');
+  postDetailModal.focus();
+  
+  // Add event listeners for modal
+  const upvoteBtn = postDetailContent.querySelector('.vote-btn.upvote');
+  const downvoteBtn = postDetailContent.querySelector('.vote-btn.downvote');
+  const commentSubmit = document.getElementById('commentSubmit');
+  
+  upvoteBtn.addEventListener('click', () => handleDetailVote(postId, 1));
+  downvoteBtn.addEventListener('click', () => handleDetailVote(postId, -1));
+  commentSubmit.addEventListener('click', () => handleCommentSubmit(postId));
+}
+
+// Close post detail modal
+function closePostDetail() {
+  postDetailOverlay.classList.remove('active');
+  currentPostId = null;
+}
+
+// Handle vote in detail view
+function handleDetailVote(postId, direction) {
+  const voteState = getVoteState(postId);
+  let newUserVote = voteState.userVote;
+  let newVoteCount = voteState.voteCount;
+  
+  if (voteState.userVote === direction) {
+    // Remove vote
+    newUserVote = 0;
+    newVoteCount -= direction;
+  } else {
+    // Change vote
+    newVoteCount -= voteState.userVote; // Remove old vote
+    newVoteCount += direction; // Add new vote
+    newUserVote = direction;
+  }
+  
+  saveVoteState(postId, newUserVote, newVoteCount);
+  
+  // Update UI
+  const upvoteBtn = postDetailContent.querySelector('.vote-btn.upvote');
+  const downvoteBtn = postDetailContent.querySelector('.vote-btn.downvote');
+  const voteCountEl = document.getElementById('detailVoteCount');
+  
+  upvoteBtn.classList.toggle('active', newUserVote === 1);
+  downvoteBtn.classList.toggle('active', newUserVote === -1);
+  voteCountEl.textContent = formatVotes(newVoteCount);
+}
+
+// Handle comment submit
+function handleCommentSubmit(postId) {
+  const input = document.getElementById('commentInput');
+  const text = input.value.trim();
+  
+  if (!text || !currentUser) return;
+  
+  const comment = {
+    id: Date.now(),
+    postId: postId,
+    author: currentUser.name,
+    text: text,
+    createdAt: Date.now()
+  };
+  
+  saveComment(postId, comment);
+  input.value = '';
+  
+  // Re-render post detail to show new comment
+  openPostDetail(postId);
+}
+
 // Create post card HTML
 function createPostCard(post) {
+  const voteState = getVoteState(post.id);
   const imageHTML = post.image 
     ? `<div class="post-image-container">
         <img 
@@ -538,15 +739,15 @@ function createPostCard(post) {
     : '';
 
   return `
-    <article class="post-card" data-post-id="${post.id}">
+    <article class="post-card" data-post-id="${post.id}" tabindex="0" role="button" aria-label="View post: ${post.title}">
       <div class="vote-section">
-        <button class="vote-btn upvote" aria-label="Upvote">
+        <button class="vote-btn upvote ${voteState.userVote === 1 ? 'active' : ''}" aria-label="Upvote">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 4l-8 8h5v8h6v-8h5z"/>
           </svg>
         </button>
-        <span class="vote-count">${formatVotes(post.votes)}</span>
-        <button class="vote-btn downvote" aria-label="Downvote">
+        <span class="vote-count">${formatVotes(voteState.voteCount)}</span>
+        <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" aria-label="Downvote">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
           </svg>
@@ -564,13 +765,13 @@ function createPostCard(post) {
         ${imageHTML}
         <p class="post-preview">${post.content}</p>
         <div class="post-actions">
-          <button class="action-btn">
+          <button class="action-btn comments-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            ${post.comments} Comments
+            ${post.comments + getComments(post.id).length} Comments
           </button>
-          <button class="action-btn">
+          <button class="action-btn share-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
               <polyline points="16 6 12 2 8 6"></polyline>
@@ -578,7 +779,7 @@ function createPostCard(post) {
             </svg>
             Share
           </button>
-          <button class="action-btn">
+          <button class="action-btn save-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
@@ -663,8 +864,30 @@ function renderPosts() {
   postsContainer.innerHTML = filtered.map(createPostCard).join('');
 
   // Add vote button listeners
-  document.querySelectorAll('.vote-btn').forEach(btn => {
+  document.querySelectorAll('.post-card .vote-btn').forEach(btn => {
     btn.addEventListener('click', handleVote);
+  });
+
+  // Add post card click listeners for opening detail view
+  document.querySelectorAll('.post-card').forEach(card => {
+    const postId = parseInt(card.dataset.postId);
+    
+    // Click on card (but not on buttons) opens detail
+    card.addEventListener('click', (e) => {
+      // Don't open if clicking on vote buttons or action buttons
+      if (e.target.closest('.vote-btn') || e.target.closest('.action-btn')) {
+        return;
+      }
+      openPostDetail(postId);
+    });
+    
+    // Keyboard accessibility - Enter/Space opens detail
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openPostDetail(postId);
+      }
+    });
   });
 }
 
@@ -812,11 +1035,18 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Post detail event listeners
+postDetailClose.addEventListener('click', closePostDetail);
+postDetailOverlay.addEventListener('click', (e) => {
+  if (e.target === postDetailOverlay) closePostDetail();
+});
+
 // Handle escape key to close modals/sidebars
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeMobileSidebar();
     closeAuthModal();
+    closePostDetail();
     userDropdown.classList.remove('active');
   }
 });
