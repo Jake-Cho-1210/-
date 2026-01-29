@@ -574,8 +574,14 @@ function formatCommentTime(timestamp) {
 
 // Open post detail modal
 function openPostDetail(postId) {
+  console.log('[v0] openPostDetail called with postId:', postId);
   const post = posts.find(p => p.id === postId);
-  if (!post) return;
+  console.log('[v0] Found post:', post);
+  if (!post) {
+    console.log('[v0] Post not found, returning');
+    return;
+  }
+  console.log('[v0] postDetailOverlay element:', postDetailOverlay);
   
   currentPostId = postId;
   const voteState = getVoteState(postId);
@@ -654,7 +660,9 @@ function openPostDetail(postId) {
     </div>
   `;
   
+  console.log('[v0] Adding active class to postDetailOverlay');
   postDetailOverlay.classList.add('active');
+  console.log('[v0] postDetailOverlay classList after adding active:', postDetailOverlay.classList);
   postDetailModal.focus();
   
   // Add event listeners for modal
@@ -869,15 +877,25 @@ function renderPosts() {
   });
 
   // Add post card click listeners for opening detail view
-  document.querySelectorAll('.post-card').forEach(card => {
+  const postCards = document.querySelectorAll('.post-card');
+  console.log('[v0] Found', postCards.length, 'post cards to attach click handlers');
+  
+  postCards.forEach(card => {
     const postId = parseInt(card.dataset.postId);
     
     // Click on card (but not on buttons) opens detail
     card.addEventListener('click', (e) => {
+      console.log('[v0] Post card clicked, postId:', postId);
+      console.log('[v0] Click target:', e.target);
+      console.log('[v0] Closest vote-btn:', e.target.closest('.vote-btn'));
+      console.log('[v0] Closest action-btn:', e.target.closest('.action-btn'));
+      
       // Don't open if clicking on vote buttons or action buttons
       if (e.target.closest('.vote-btn') || e.target.closest('.action-btn')) {
+        console.log('[v0] Click on button, not opening detail');
         return;
       }
+      console.log('[v0] Opening post detail for postId:', postId);
       openPostDetail(postId);
     });
     
@@ -1052,4 +1070,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Initial render
+console.log('[v0] Starting app initialization');
 init();
+console.log('[v0] App initialized, post detail overlay element:', document.getElementById('postDetailOverlay'));
