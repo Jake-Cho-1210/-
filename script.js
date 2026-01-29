@@ -560,8 +560,13 @@ function formatCommentTime(timestamp) {
 
 // Open post detail view (inline, not modal)
 function openPostDetail(postId) {
+  console.log('[v0] openPostDetail called with postId:', postId);
   const post = posts.find(p => p.id === postId);
-  if (!post) return;
+  if (!post) {
+    console.log('[v0] Post not found!');
+    return;
+  }
+  console.log('[v0] Found post, switching to detail view');
   
   // Save scroll position before switching view
   feedScrollPosition = window.scrollY;
@@ -659,6 +664,7 @@ function openPostDetail(postId) {
   
   // Scroll to top
   window.scrollTo(0, 0);
+  console.log('[v0] Detail view rendered, postsContainer innerHTML length:', postsContainer.innerHTML.length);
   
   // Add event listeners
   const backBtn = document.getElementById('backToFeedBtn');
@@ -882,9 +888,12 @@ function renderPosts() {
     const postId = parseInt(card.dataset.postId);
     
     card.addEventListener('click', (e) => {
+      console.log('[v0] Post card clicked, postId:', postId);
       if (e.target.closest('.vote-btn') || e.target.closest('.action-btn')) {
+        console.log('[v0] Clicked on button, ignoring');
         return;
       }
+      console.log('[v0] Opening post detail');
       openPostDetail(postId);
     });
     
