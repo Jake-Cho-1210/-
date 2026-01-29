@@ -510,12 +510,14 @@ function updateAuthUI() {
   if (currentUser) {
     authButtons.style.display = 'none';
     userMenu.style.display = 'block';
+    profileBtn.style.display = 'flex';
     usernameDisplay.textContent = getDisplayNameWithFlag(currentUser);
+    renderProfileButton();
   } else {
     authButtons.style.display = 'flex';
     userMenu.style.display = 'none';
+    profileBtn.style.display = 'none';
   }
-  renderProfileButton();
 }
 
 // Render profile button content (icon or image)
