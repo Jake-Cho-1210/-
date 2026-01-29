@@ -1356,35 +1356,6 @@ sidebarOverlay.addEventListener('click', closeMobileSidebar);
 // Theme toggle
 themeToggleBtn.addEventListener('click', toggleTheme);
 
-// Logo click - return to homepage feed
-const logoLink = document.getElementById('logoLink');
-logoLink.addEventListener('click', (e) => {
-  e.preventDefault();
-  // Reset state to defaults
-  currentCategory = 'all';
-  currentSort = 'hot';
-  currentLanguage = 'English';
-  currentActivityType = 'Running';
-  searchQuery = '';
-  searchInput.value = '';
-  isDetailView = false;
-  isMyPageView = false;
-  currentPostId = null;
-  
-  // Update UI
-  navItems.forEach(item => {
-    item.classList.toggle('active', item.dataset.category === 'all');
-  });
-  sortButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sort === 'hot');
-  });
-  feedTitle.textContent = 'All Posts';
-  feedHeader.style.display = 'flex';
-  updateFeedTabs();
-  renderPosts();
-  window.scrollTo(0, 0);
-});
-
 // My Page event listener
 myPageBtn.addEventListener('click', openMyPage);
 
