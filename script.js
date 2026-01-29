@@ -8,6 +8,7 @@ const posts = [
     category: "korea-starter-pack",
     categoryLabel: "Korea Starter Pack",
     author: "SeoulExplorer",
+    authorNationality: "US",
     timestamp: "2 hours ago",
     votes: 342,
     comments: 47,
@@ -20,6 +21,7 @@ const posts = [
     category: "activities",
     categoryLabel: "Activities",
     author: "MountainHiker",
+    authorNationality: "DE",
     timestamp: "5 hours ago",
     votes: 256,
     comments: 32,
@@ -33,6 +35,7 @@ const posts = [
     category: "local-area",
     categoryLabel: "Local Area",
     author: "DigitalNomadKR",
+    authorNationality: "GB",
     timestamp: "8 hours ago",
     votes: 189,
     comments: 28
@@ -44,6 +47,7 @@ const posts = [
     category: "travel-area",
     categoryLabel: "Travel Area",
     author: "KoreaWanderer",
+    authorNationality: "FR",
     timestamp: "12 hours ago",
     votes: 421,
     comments: 56,
@@ -56,6 +60,7 @@ const posts = [
     category: "restaurants",
     categoryLabel: "Restaurants",
     author: "FoodieSeoul",
+    authorNationality: "CA",
     timestamp: "1 day ago",
     votes: 534,
     comments: 72,
@@ -461,6 +466,13 @@ function getDisplayNameWithFlag(user) {
   return flag ? `${flag} ${nickname}` : nickname;
 }
 
+// Format author display name (for posts and comments)
+function formatAuthorDisplay(authorName, authorNationality) {
+  if (!authorNationality) return authorName;
+  const flag = getFlagEmoji(authorNationality);
+  return flag ? `${flag} ${authorName}` : authorName;
+}
+
 // Toggle like for a post
 function toggleLike(postId) {
   const state = getLikeState(postId);
@@ -803,16 +815,16 @@ function openPostDetail(postId) {
     ? `<img src="${post.image}" alt="${post.title}" class="post-detail-image" />`
     : '';
   
-  const commentsHTML = comments.length > 0
-    ? comments.map(c => `
-        <div class="comment-item">
-          <div class="comment-meta">
-            <span class="comment-author">u/${c.author}</span>
-            <span>•</span>
-            <span>${formatCommentTime(c.createdAt)}</span>
-          </div>
-          <p class="comment-text">${c.text}</p>
-        </div>
+const commentsHTML = comments.length > 0
+  ? comments.map(c => `
+  <div class="comment-item">
+  <div class="comment-meta">
+  <span class="comment-author">${formatAuthorDisplay(c.author, c.authorNationality)}</span>
+  <span>•</span>
+  <span>${formatCommentTime(c.createdAt)}</span>
+  </div>
+  <p class="comment-text">${c.text}</p>
+  </div>
       `).join('')
     : '<p class="no-comments">No comments yet. Be the first to comment!</p>';
   
@@ -839,14 +851,14 @@ function openPostDetail(postId) {
               </svg>
             </button>
           </div>
-          <div class="post-detail-main">
-            <div class="post-detail-meta">
-              <span class="post-category">${post.categoryLabel}</span>
-              <span>Posted by</span>
-              <span class="post-author">u/${post.author}</span>
-              <span>•</span>
-              <span>${post.timestamp}</span>
-            </div>
+<div class="post-detail-main">
+  <div class="post-detail-meta">
+  <span class="post-category">${post.categoryLabel}</span>
+  <span>Posted by</span>
+  <span class="post-author">${formatAuthorDisplay(post.author, post.authorNationality)}</span>
+  <span>•</span>
+  <span>${post.timestamp}</span>
+  </div>
             <h2 class="post-detail-title">${post.title}</h2>
             ${imageHTML}
             <div class="post-detail-body">${post.content}</div>
@@ -966,12 +978,13 @@ function handleCommentSubmit(postId) {
   
   if (!text || !currentUser) return;
   
-  const comment = {
-    id: Date.now(),
-    postId: postId,
-    author: currentUser.name,
-    text: text,
-    createdAt: Date.now()
+const comment = {
+  id: Date.now(),
+  postId: postId,
+  author: currentUser.nickname || currentUser.name,
+  authorNationality: currentUser.nationality,
+  text: text,
+  createdAt: Date.now()
   };
   
   saveComment(postId, comment);
@@ -1013,13 +1026,13 @@ function createPostCard(post) {
         </button>
       </div>
       <div class="post-content">
-        <div class="post-meta">
-          <span class="post-category">${post.categoryLabel}</span>
-          <span>Posted by</span>
-          <span class="post-author">u/${post.author}</span>
-          <span>•</span>
-          <span>${post.timestamp}</span>
-        </div>
+<div class="post-meta">
+  <span class="post-category">${post.categoryLabel}</span>
+  <span>Posted by</span>
+  <span class="post-author">${formatAuthorDisplay(post.author, post.authorNationality)}</span>
+  <span>•</span>
+  <span>${post.timestamp}</span>
+  </div>
         <h3 class="post-title">${post.title}</h3>
         ${imageHTML}
         <p class="post-preview">${post.content}</p>

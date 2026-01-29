@@ -654,11 +654,6 @@ body {
   color: var(--color-text);
 }
 
-/* Nested nav item (Festival under Activities) */
-.nav-item-nested {
-  padding-left: 20px;
-}
-
 .posts-container {
   display: flex;
   flex-direction: column;
