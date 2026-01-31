@@ -1056,18 +1056,68 @@ function renderProfileTabContent(tab, postsSort = 'new') {
           <label for="nationalityEditSelect">Nationality ${currentUser.nationalityChangedOnce ? '(cannot be changed again)' : '(can be changed once)'}</label>
           <select id="nationalityEditSelect" class="form-input" ${currentUser.nationalityChangedOnce ? 'disabled' : ''}>
             <option value="">Select nationality</option>
-            <option value="US" ${currentUser.nationality === 'US' ? 'selected' : ''}>United States</option>
-            <option value="GB" ${currentUser.nationality === 'GB' ? 'selected' : ''}>United Kingdom</option>
-            <option value="CA" ${currentUser.nationality === 'CA' ? 'selected' : ''}>Canada</option>
-            <option value="AU" ${currentUser.nationality === 'AU' ? 'selected' : ''}>Australia</option>
-            <option value="FR" ${currentUser.nationality === 'FR' ? 'selected' : ''}>France</option>
-            <option value="DE" ${currentUser.nationality === 'DE' ? 'selected' : ''}>Germany</option>
-            <option value="JP" ${currentUser.nationality === 'JP' ? 'selected' : ''}>Japan</option>
-            <option value="KR" ${currentUser.nationality === 'KR' ? 'selected' : ''}>South Korea</option>
-            <option value="CN" ${currentUser.nationality === 'CN' ? 'selected' : ''}>China</option>
-            <option value="ES" ${currentUser.nationality === 'ES' ? 'selected' : ''}>Spain</option>
-            <option value="IT" ${currentUser.nationality === 'IT' ? 'selected' : ''}>Italy</option>
-            <option value="RU" ${currentUser.nationality === 'RU' ? 'selected' : ''}>Russia</option>
+            <optgroup label="North America">
+              <option value="US" ${currentUser.nationality === 'US' ? 'selected' : ''}>United States</option>
+              <option value="CA" ${currentUser.nationality === 'CA' ? 'selected' : ''}>Canada</option>
+            </optgroup>
+            <optgroup label="East Asia">
+              <option value="KR" ${currentUser.nationality === 'KR' ? 'selected' : ''}>South Korea</option>
+              <option value="JP" ${currentUser.nationality === 'JP' ? 'selected' : ''}>Japan</option>
+              <option value="CN" ${currentUser.nationality === 'CN' ? 'selected' : ''}>China</option>
+            </optgroup>
+            <optgroup label="European Union">
+              <option value="AT" ${currentUser.nationality === 'AT' ? 'selected' : ''}>Austria</option>
+              <option value="BE" ${currentUser.nationality === 'BE' ? 'selected' : ''}>Belgium</option>
+              <option value="BG" ${currentUser.nationality === 'BG' ? 'selected' : ''}>Bulgaria</option>
+              <option value="HR" ${currentUser.nationality === 'HR' ? 'selected' : ''}>Croatia</option>
+              <option value="CY" ${currentUser.nationality === 'CY' ? 'selected' : ''}>Cyprus</option>
+              <option value="CZ" ${currentUser.nationality === 'CZ' ? 'selected' : ''}>Czech Republic</option>
+              <option value="DK" ${currentUser.nationality === 'DK' ? 'selected' : ''}>Denmark</option>
+              <option value="EE" ${currentUser.nationality === 'EE' ? 'selected' : ''}>Estonia</option>
+              <option value="FI" ${currentUser.nationality === 'FI' ? 'selected' : ''}>Finland</option>
+              <option value="FR" ${currentUser.nationality === 'FR' ? 'selected' : ''}>France</option>
+              <option value="DE" ${currentUser.nationality === 'DE' ? 'selected' : ''}>Germany</option>
+              <option value="GR" ${currentUser.nationality === 'GR' ? 'selected' : ''}>Greece</option>
+              <option value="HU" ${currentUser.nationality === 'HU' ? 'selected' : ''}>Hungary</option>
+              <option value="IE" ${currentUser.nationality === 'IE' ? 'selected' : ''}>Ireland</option>
+              <option value="IT" ${currentUser.nationality === 'IT' ? 'selected' : ''}>Italy</option>
+              <option value="LV" ${currentUser.nationality === 'LV' ? 'selected' : ''}>Latvia</option>
+              <option value="LT" ${currentUser.nationality === 'LT' ? 'selected' : ''}>Lithuania</option>
+              <option value="LU" ${currentUser.nationality === 'LU' ? 'selected' : ''}>Luxembourg</option>
+              <option value="MT" ${currentUser.nationality === 'MT' ? 'selected' : ''}>Malta</option>
+              <option value="NL" ${currentUser.nationality === 'NL' ? 'selected' : ''}>Netherlands</option>
+              <option value="PL" ${currentUser.nationality === 'PL' ? 'selected' : ''}>Poland</option>
+              <option value="PT" ${currentUser.nationality === 'PT' ? 'selected' : ''}>Portugal</option>
+              <option value="RO" ${currentUser.nationality === 'RO' ? 'selected' : ''}>Romania</option>
+              <option value="SK" ${currentUser.nationality === 'SK' ? 'selected' : ''}>Slovakia</option>
+              <option value="SI" ${currentUser.nationality === 'SI' ? 'selected' : ''}>Slovenia</option>
+              <option value="ES" ${currentUser.nationality === 'ES' ? 'selected' : ''}>Spain</option>
+              <option value="SE" ${currentUser.nationality === 'SE' ? 'selected' : ''}>Sweden</option>
+            </optgroup>
+            <optgroup label="Other European Countries">
+              <option value="AL" ${currentUser.nationality === 'AL' ? 'selected' : ''}>Albania</option>
+              <option value="AD" ${currentUser.nationality === 'AD' ? 'selected' : ''}>Andorra</option>
+              <option value="AM" ${currentUser.nationality === 'AM' ? 'selected' : ''}>Armenia</option>
+              <option value="AZ" ${currentUser.nationality === 'AZ' ? 'selected' : ''}>Azerbaijan</option>
+              <option value="BY" ${currentUser.nationality === 'BY' ? 'selected' : ''}>Belarus</option>
+              <option value="BA" ${currentUser.nationality === 'BA' ? 'selected' : ''}>Bosnia and Herzegovina</option>
+              <option value="GE" ${currentUser.nationality === 'GE' ? 'selected' : ''}>Georgia</option>
+              <option value="IS" ${currentUser.nationality === 'IS' ? 'selected' : ''}>Iceland</option>
+              <option value="LI" ${currentUser.nationality === 'LI' ? 'selected' : ''}>Liechtenstein</option>
+              <option value="MD" ${currentUser.nationality === 'MD' ? 'selected' : ''}>Moldova</option>
+              <option value="MC" ${currentUser.nationality === 'MC' ? 'selected' : ''}>Monaco</option>
+              <option value="ME" ${currentUser.nationality === 'ME' ? 'selected' : ''}>Montenegro</option>
+              <option value="MK" ${currentUser.nationality === 'MK' ? 'selected' : ''}>North Macedonia</option>
+              <option value="NO" ${currentUser.nationality === 'NO' ? 'selected' : ''}>Norway</option>
+              <option value="RU" ${currentUser.nationality === 'RU' ? 'selected' : ''}>Russia</option>
+              <option value="RS" ${currentUser.nationality === 'RS' ? 'selected' : ''}>Serbia</option>
+              <option value="SM" ${currentUser.nationality === 'SM' ? 'selected' : ''}>San Marino</option>
+              <option value="CH" ${currentUser.nationality === 'CH' ? 'selected' : ''}>Switzerland</option>
+              <option value="TR" ${currentUser.nationality === 'TR' ? 'selected' : ''}>Turkey</option>
+              <option value="UA" ${currentUser.nationality === 'UA' ? 'selected' : ''}>Ukraine</option>
+              <option value="GB" ${currentUser.nationality === 'GB' ? 'selected' : ''}>United Kingdom</option>
+              <option value="VA" ${currentUser.nationality === 'VA' ? 'selected' : ''}>Vatican City</option>
+            </optgroup>
           </select>
         </div>
         <div class="form-group">
@@ -1379,45 +1429,54 @@ function setupCropDragHandlers() {
   canvas.width = outputSize;
   canvas.height = outputSize;
   
-  // Get crop area dimensions
-  const cropAreaRect = cropArea.getBoundingClientRect();
-  const cropAreaSize = Math.min(cropAreaRect.width, cropAreaRect.height);
+  // Get crop area dimensions (the visible circular area is 250x250)
+  const cropAreaSize = 250;
   
   // Create image for drawing
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
-    // Calculate image display size within crop area
-    const aspectRatio = img.width / img.height;
-    let displayWidth, displayHeight;
+    // The image in preview is scaled by cropZoom and offset by cropOffsetX/Y
+    // The scaled image dimensions
+    const scaledWidth = img.width * cropZoom;
+    const scaledHeight = img.height * cropZoom;
     
-    if (aspectRatio > 1) {
-      displayHeight = cropAreaSize;
-      displayWidth = cropAreaSize * aspectRatio;
-    } else {
-      displayWidth = cropAreaSize;
-      displayHeight = cropAreaSize / aspectRatio;
-    }
+    // The image is centered in the crop area, then offset by user drag
+    // Image center position relative to crop area center
+    const imgCenterX = cropAreaSize / 2 + cropOffsetX;
+    const imgCenterY = cropAreaSize / 2 + cropOffsetY;
     
-    // Apply zoom
-    displayWidth *= cropZoom;
-    displayHeight *= cropZoom;
+    // Image top-left corner in crop area coordinates
+    const imgLeft = imgCenterX - scaledWidth / 2;
+    const imgTop = imgCenterY - scaledHeight / 2;
     
-    // Calculate the center offset
-    const centerX = (cropAreaSize - displayWidth) / 2 + cropOffsetX;
-    const centerY = (cropAreaSize - displayHeight) / 2 + cropOffsetY;
+    // The crop area (0,0 to cropAreaSize,cropAreaSize) captures what's visible
+    // We need to find what part of the original image this corresponds to
     
-    // Calculate source coordinates
-    const scaleX = img.width / displayWidth;
-    const scaleY = img.height / displayHeight;
+    // Convert crop area (0,0) to image source coordinates
+    const srcX = (0 - imgLeft) / cropZoom;
+    const srcY = (0 - imgTop) / cropZoom;
+    const srcW = cropAreaSize / cropZoom;
+    const srcH = cropAreaSize / cropZoom;
     
-    const srcX = -centerX * scaleX;
-    const srcY = -centerY * scaleY;
-    const srcW = cropAreaSize * scaleX;
-    const srcH = cropAreaSize * scaleY;
+    // Ensure we don't go out of bounds
+    const clampedSrcX = Math.max(0, srcX);
+    const clampedSrcY = Math.max(0, srcY);
+    const clampedSrcW = Math.min(img.width - clampedSrcX, srcW);
+    const clampedSrcH = Math.min(img.height - clampedSrcY, srcH);
+    
+    // Calculate destination adjustments for out-of-bounds source
+    const destX = srcX < 0 ? (-srcX * cropZoom / cropAreaSize) * outputSize : 0;
+    const destY = srcY < 0 ? (-srcY * cropZoom / cropAreaSize) * outputSize : 0;
+    const destW = (clampedSrcW / srcW) * outputSize;
+    const destH = (clampedSrcH / srcH) * outputSize;
+    
+    // Fill background (in case image doesn't cover full area)
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, outputSize, outputSize);
     
     // Draw the cropped image
-    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outputSize, outputSize);
+    ctx.drawImage(img, clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH, destX, destY, destW, destH);
     
     // Save as data URL
     const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
