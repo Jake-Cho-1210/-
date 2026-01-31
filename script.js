@@ -393,7 +393,7 @@ const posts = [
     title: "Best Korean drama recommendations for learning Korean?",
     content: "I've been trying to improve my Korean listening skills by watching K-dramas. Can anyone recommend some good ones that have clear dialogue and aren't too fast? I'm at intermediate level. Thanks in advance!",
     category: "free-board",
-    categoryLabel: "Free Board",
+    categoryLabel: "Travexlo Lounge",
     author: "KdramaFan",
     authorNationality: "US",
     createdAt: Date.now() - 3 * 60 * 60 * 1000,
@@ -406,7 +406,7 @@ const posts = [
     title: "Tips for making Korean friends as an expat",
     content: "I've been living in Seoul for 6 months now but finding it hard to make local friends. What worked for you? I've tried language exchanges but most people just want to practice English. Any advice appreciated!",
     category: "free-board",
-    categoryLabel: "Free Board",
+    categoryLabel: "Travexlo Lounge",
     author: "LonelyExpat",
     authorNationality: "GB",
     createdAt: Date.now() - 8 * 60 * 60 * 1000,
@@ -419,7 +419,7 @@ const posts = [
     title: "Is Korean healthcare really that good?",
     content: "Coming from the US, I keep hearing that Korean healthcare is amazing and affordable. What's been your experience? I need to get a checkup done and wondering if I should do it here or wait until I visit home.",
     category: "free-board",
-    categoryLabel: "Free Board",
+    categoryLabel: "Travexlo Lounge",
     author: "HealthCurious",
     authorNationality: "US",
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
@@ -432,7 +432,7 @@ const posts = [
     title: "Need help with Korean phone plan - confused by options",
     content: "Just arrived and overwhelmed by all the phone plan options. SKT, KT, LG U+... What's the difference? I need unlimited data and some international calling. Budget is around 50,000 won/month. Please help!",
     category: "free-board",
-    categoryLabel: "Free Board",
+    categoryLabel: "Travexlo Lounge",
     author: "NewbieInKorea",
     authorNationality: "CA",
     createdAt: Date.now() - 5 * 60 * 60 * 1000,
@@ -445,7 +445,7 @@ const posts = [
     title: "What's your unpopular opinion about living in Korea?",
     content: "Let's have a fun discussion! What's something about living in Korea that you feel differently about compared to most expats? I'll start: I actually prefer Korean customer service style over Western 'friendly' service.",
     category: "free-board",
-    categoryLabel: "Free Board",
+    categoryLabel: "Travexlo Lounge",
     author: "ControversialTakes",
     authorNationality: "AU",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
@@ -482,7 +482,7 @@ function refreshTimestamps() {
 // Category name mapping
 const categoryNames = {
   'all': 'All Posts',
-  'free-board': 'Free Board',
+  'free-board': 'Travexlo Lounge',
   'korea-starter-pack': 'Korea Starter Pack',
   'activities': 'Activities',
   'festival': 'Festival',
@@ -491,7 +491,8 @@ const categoryNames = {
   'restaurants': 'Restaurants',
   'korean-language': 'Korean Language',
   'audio-guides': 'Audio Guides',
-  'rent': 'Rent'
+  'rent': 'Rent',
+  'tour': 'Tour'
 };
 
 // Categories that use language tabs instead of sort tabs
@@ -784,7 +785,7 @@ function openMyPage() {
 let activeProfileTab = 'edit';
 
 // Render My Page view with tabs
-function renderMyPageView(tab = 'edit') {
+function renderMyPageView(tab = 'edit', postsSort = 'new') {
   activeProfileTab = tab;
   const flag = getFlagEmoji(currentUser.nationality);
   const profileImg = currentUser.profileImage || '';
@@ -814,6 +815,10 @@ function renderMyPageView(tab = 'edit') {
         </div>
         <div class="profile-info">
           <span class="profile-display-name">${flag} ${currentUser.nickname || currentUser.name}</span>
+          <div class="profile-stats-inline">
+            <span class="profile-stat-item">Following <strong>${currentUser.following || 0}</strong></span>
+            <span class="profile-stat-item">Followers <strong>${currentUser.followers || 0}</strong></span>
+          </div>
         </div>
         <button class="logout-btn-header" id="logoutBtnHeader">Logout</button>
       </div>
@@ -821,13 +826,14 @@ function renderMyPageView(tab = 'edit') {
       <!-- Profile Tabs -->
       <div class="profile-tabs">
         <button class="profile-tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">Edit profile</button>
+        <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
         <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
         <button class="profile-tab ${tab === 'saved' ? 'active' : ''}" data-tab="saved">Saved</button>
       </div>
       
       <!-- Tab Content -->
       <div class="profile-tab-content" id="profileTabContent">
-        ${renderProfileTabContent(tab)}
+        ${renderProfileTabContent(tab, postsSort)}
       </div>
     </div>
   `;
@@ -881,10 +887,29 @@ function renderMyPageView(tab = 'edit') {
       });
     });
   }
+  if (tab === 'posts') {
+    // Posts tab sorting
+    document.querySelectorAll('.posts-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sort = btn.dataset.sort;
+        renderMyPageView('posts', sort);
+      });
+    });
+    // Click to view post
+    document.querySelectorAll('.my-post-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeMyPage();
+        openPostDetail(postId);
+      });
+    });
+  }
 }
 
 // Render content for each profile tab
-function renderProfileTabContent(tab) {
+function renderProfileTabContent(tab, postsSort = 'new') {
   if (tab === 'edit') {
     const nameDisabled = currentUser.nameChangedOnce ? 'disabled' : '';
     const natDisabled = currentUser.nationalityChangedOnce ? 'disabled' : '';
@@ -932,6 +957,39 @@ function renderProfileTabContent(tab) {
         </div>
         <button type="submit" class="form-submit">Save changes</button>
       </form>
+    `;
+  } else if (tab === 'posts') {
+    // Get posts by current user
+    // TODO: Connect to backend API when available
+    let userPosts = posts.filter(p => p.author === (currentUser.nickname || currentUser.name));
+    
+    // Sort posts
+    if (postsSort === 'top') {
+      userPosts = userPosts.sort((a, b) => b.votes - a.votes);
+    } else {
+      userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
+    }
+    
+    return `
+      <div class="posts-sort-row">
+        <button class="posts-sort-btn ${postsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
+        <button class="posts-sort-btn ${postsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
+      </div>
+      ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
+      <div class="my-posts-list">
+        ${userPosts.map(p => `
+          <div class="my-post-item" data-post-id="${p.id}">
+            <div class="my-post-title">${p.title}</div>
+            <div class="my-post-meta">
+              <span>${formatTimeAgo(p.createdAt)}</span>
+              <span>${p.categoryLabel}</span>
+              <span>${p.votes} votes</span>
+              <span>${p.comments} comments</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      `}
     `;
   } else if (tab === 'comments') {
     const comments = currentUser.myComments || [];
@@ -1026,6 +1084,189 @@ function handleAvatarUpload(e) {
   };
   
   reader.readAsDataURL(file);
+}
+
+// State for viewing other users
+let viewingUser = null;
+let viewingUserPostsSort = 'new';
+
+// Open another user's profile
+function openUserProfile(username, nationality) {
+  // Save scroll position
+  feedScrollPosition = window.scrollY;
+  isMyPageView = true;
+  isDetailView = false;
+  
+  // Create mock user object
+  // TODO: Fetch user data from backend API when available
+  viewingUser = {
+    id: username,
+    nickname: username,
+    name: username,
+    nationality: nationality,
+    profileImage: null,
+    followers: Math.floor(Math.random() * 500),
+    following: Math.floor(Math.random() * 200)
+  };
+  
+  // Hide the feed header
+  feedHeader.style.display = 'none';
+  
+  renderOtherUserProfile('posts');
+  
+  window.scrollTo(0, 0);
+}
+
+// Render other user's profile
+function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
+  viewingUserPostsSort = postsSort;
+  const flag = getFlagEmoji(viewingUser.nationality);
+  const profileImg = viewingUser.profileImage || '';
+  
+  postsContainer.innerHTML = `
+    <div class="my-page-view">
+      <button class="back-btn" id="backFromUserProfile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Back
+      </button>
+      
+      <!-- Profile Header -->
+      <div class="profile-header-row">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar-large">
+            ${profileImg ? `<img src="${profileImg}" alt="Profile">` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
+          </div>
+        </div>
+        <div class="profile-info">
+          <span class="profile-display-name">${flag} ${viewingUser.nickname || viewingUser.name}</span>
+          <div class="profile-stats-inline">
+            <span class="profile-stat-item">Following <strong>${viewingUser.following || 0}</strong></span>
+            <span class="profile-stat-item">Followers <strong>${viewingUser.followers || 0}</strong></span>
+          </div>
+        </div>
+        <button class="chat-btn-header" id="chatWithUserBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Chat
+        </button>
+      </div>
+      
+      <!-- Profile Tabs (only Posts and Comments for other users) -->
+      <div class="profile-tabs">
+        <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
+        <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
+      </div>
+      
+      <!-- Tab Content -->
+      <div class="profile-tab-content" id="profileTabContent">
+        ${renderOtherUserTabContent(tab, postsSort)}
+      </div>
+    </div>
+  `;
+  
+  // Add event listeners
+  document.getElementById('backFromUserProfile').addEventListener('click', closeUserProfile);
+  document.getElementById('chatWithUserBtn').addEventListener('click', () => {
+    // TODO: Implement chat functionality
+    alert('Chat feature coming soon!');
+  });
+  
+  // Tab switching
+  document.querySelectorAll('.profile-tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      renderOtherUserProfile(tabBtn.dataset.tab);
+    });
+  });
+  
+  // Posts tab sorting
+  if (tab === 'posts') {
+    document.querySelectorAll('.posts-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderOtherUserProfile('posts', btn.dataset.sort);
+      });
+    });
+    document.querySelectorAll('.my-post-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeUserProfile();
+        openPostDetail(postId);
+      });
+    });
+  }
+  
+  if (tab === 'comments') {
+    document.querySelectorAll('.my-comment-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeUserProfile();
+        openPostDetail(postId);
+      });
+    });
+  }
+}
+
+// Render content for other user's profile tabs
+function renderOtherUserTabContent(tab, postsSort = 'new') {
+  if (tab === 'posts') {
+    // Get posts by this user
+    let userPosts = posts.filter(p => p.author === viewingUser.nickname);
+    
+    // Sort posts
+    if (postsSort === 'top') {
+      userPosts = userPosts.sort((a, b) => b.votes - a.votes);
+    } else {
+      userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
+    }
+    
+    return `
+      <div class="posts-sort-row">
+        <button class="posts-sort-btn ${postsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
+        <button class="posts-sort-btn ${postsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
+      </div>
+      ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
+      <div class="my-posts-list">
+        ${userPosts.map(p => `
+          <div class="my-post-item" data-post-id="${p.id}">
+            <div class="my-post-title">${p.title}</div>
+            <div class="my-post-meta">
+              <span>${formatTimeAgo(p.createdAt)}</span>
+              <span>${p.categoryLabel}</span>
+              <span>${p.votes} votes</span>
+              <span>${p.comments} comments</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      `}
+    `;
+  } else if (tab === 'comments') {
+    // TODO: Fetch user's comments from backend
+    // For now, return empty since we don't have other users' comments stored
+    return `<div class="empty-tab-message">No comments to show.</div>`;
+  }
+  return '';
+}
+
+// Close other user profile
+function closeUserProfile() {
+  viewingUser = null;
+  isMyPageView = false;
+  
+  // Show the feed header again
+  feedHeader.style.display = 'flex';
+  
+  // Re-render posts
+  renderPosts();
+  
+  // Restore scroll position
+  setTimeout(() => {
+    window.scrollTo(0, feedScrollPosition);
+  }, 0);
 }
 
 // Close My Page and return to feed
@@ -1599,17 +1840,32 @@ function renderPosts() {
     });
   });
 
+  // Add clickable author handlers
+  document.querySelectorAll('.clickable-author').forEach(el => {
+  el.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const author = el.dataset.author;
+  const nationality = el.dataset.nationality;
+  // Don't open own profile - go to My Page instead
+  if (currentUser && (author === currentUser.nickname || author === currentUser.name)) {
+  openMyPage();
+  } else {
+  openUserProfile(author, nationality);
+  }
+  });
+  });
+  
   // Add post card click listeners for opening detail view
   document.querySelectorAll('.post-card').forEach(card => {
-    const postId = parseInt(card.dataset.postId);
-    
-    card.addEventListener('click', (e) => {
-      // Block only vote and like buttons, allow comments-btn to open detail
-      if (e.target.closest('.vote-btn') || e.target.closest('.like-btn')) {
-        return;
-      }
-      openPostDetail(postId);
-    });
+  const postId = parseInt(card.dataset.postId);
+  
+  card.addEventListener('click', (e) => {
+  // Block vote, like buttons, and author clicks
+  if (e.target.closest('.vote-btn') || e.target.closest('.like-btn') || e.target.closest('.clickable-author')) {
+  return;
+  }
+  openPostDetail(postId);
+  });
     
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -1905,7 +2161,7 @@ function createNewPost(title, content, topic, imageUrl) {
     title: title,
     content: content,
     category: 'free-board',
-    categoryLabel: 'Free Board',
+    categoryLabel: 'Travexlo Lounge',
     author: currentUser.nickname || currentUser.name,
     authorNationality: currentUser.nationality,
     createdAt: Date.now(),
@@ -1923,7 +2179,7 @@ function createNewPost(title, content, topic, imageUrl) {
   navItems.forEach(item => {
     item.classList.toggle('active', item.dataset.category === 'free-board');
   });
-  feedTitle.textContent = 'Free Board';
+  feedTitle.textContent = 'Travexlo Lounge';
   updateFeedTabs();
   renderPosts();
   window.scrollTo(0, 0);
@@ -1932,12 +2188,21 @@ function createNewPost(title, content, topic, imageUrl) {
 // Profile button event listener
 profileBtn.addEventListener('click', openMyPage);
 
-// Notification button event listener
-notificationBtn.addEventListener('click', () => {
+  // Notification button event listener
+  notificationBtn.addEventListener('click', () => {
   alert('No new notifications');
-});
-
-// Auth event listeners
+  });
+  
+  // Chat button event listener
+  const chatBtn = document.getElementById('chatBtn');
+  if (chatBtn) {
+  chatBtn.addEventListener('click', () => {
+  // TODO: Implement chat/inbox page when backend is available
+  alert('Chat feature coming soon!');
+  });
+  }
+  
+  // Auth event listeners
 loginBtn.addEventListener('click', () => openAuthModal(false));
 authModalClose.addEventListener('click', closeAuthModal);
 authModalOverlay.addEventListener('click', (e) => {
@@ -2005,12 +2270,15 @@ function getDisplayNameWithFlag(user) {
 }
 
 // Format author display with flag emoji: "FLAG AuthorName"
-function formatAuthorDisplay(author, nationality) {
+function formatAuthorDisplay(author, nationality, clickable = true) {
   if (!author) return '';
-  if (!nationality) return author;
-  const flag = getFlagEmoji(nationality);
-  return flag ? `${flag} ${author}` : author;
-}
+  const flag = nationality ? getFlagEmoji(nationality) : '';
+  const displayName = flag ? `${flag} ${author}` : author;
+  if (clickable) {
+    return `<span class="clickable-author" data-author="${author}" data-nationality="${nationality || ''}">${displayName}</span>`;
+  }
+  return displayName;
+  }
 
 // Load view counts from localStorage
 function loadViewCounts() {

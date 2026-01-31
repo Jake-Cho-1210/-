@@ -1857,3 +1857,138 @@ body {
 .form-cancel:hover {
   background: var(--color-hover);
 }
+
+/* Chat Button in Header */
+.chat-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.chat-btn:hover {
+  background: var(--color-hover);
+}
+
+/* Profile Stats Inline */
+.profile-stats-inline {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.profile-stat-item {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.profile-stat-item strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Posts Sort Row */
+.posts-sort-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.posts-sort-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.posts-sort-btn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.posts-sort-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* My Posts List */
+.my-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-post-item {
+  padding: 12px 16px;
+  background: var(--color-hover);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.my-post-item:hover {
+  background: var(--color-border-light);
+}
+
+.my-post-title {
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.my-post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.my-post-meta span:not(:last-child)::after {
+  content: "•";
+  margin-left: 8px;
+}
+
+/* Clickable Author */
+.clickable-author {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.clickable-author:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Chat Button in Profile Header */
+.chat-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.chat-btn-header:hover {
+  background: var(--color-primary-hover, #0056b3);
+}
