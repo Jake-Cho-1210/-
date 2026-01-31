@@ -1164,46 +1164,67 @@ function applyAvatarCrop() {
   const cropImage = document.getElementById('cropImage');
   const cropArea = document.getElementById('cropArea');
   
-  // Get the visible area dimensions (the circle is 200px)
-  const circleSize = 200;
-  const areaRect = cropArea.getBoundingClientRect();
-  const centerX = areaRect.width / 2;
-  const centerY = areaRect.height / 2;
+  // Output size for the cropped avatar
+  const outputSize = 200;
+  const cropAreaSize = 250; // Must match CSS .crop-area width/height
+  const circleSize = 200;   // Must match CSS .crop-circle-overlay width/height
   
-  // Create canvas to render cropped result
+  // Create canvas
   const canvas = document.createElement('canvas');
-  canvas.width = circleSize;
-  canvas.height = circleSize;
+  canvas.width = outputSize;
+  canvas.height = outputSize;
   const ctx = canvas.getContext('2d');
   
-  // Calculate source coordinates based on current transform
-  const img = cropImage;
-  const imgWidth = img.naturalWidth;
-  const imgHeight = img.naturalHeight;
+  // Get image natural dimensions
+  const natW = cropImage.naturalWidth;
+  const natH = cropImage.naturalHeight;
   
-  // The displayed image size
-  const displayedWidth = img.offsetWidth * cropScale;
-  const displayedHeight = img.offsetHeight * cropScale;
+  // Displayed image size (fits within crop area, then scaled)
+  const dispW = cropImage.offsetWidth;
+  const dispH = cropImage.offsetHeight;
   
-  // Center of the crop circle in image coordinates
-  const imgCenterX = (centerX - cropOffsetX) / cropScale;
-  const imgCenterY = (centerY - cropOffsetY) / cropScale;
+  // Ratio from displayed to natural
+  const ratioX = natW / dispW;
+  const ratioY = natH / dispH;
   
-  // Source rectangle
-  const sourceSize = circleSize / cropScale;
-  const sourceX = (imgCenterX - sourceSize / 2) * (imgWidth / img.offsetWidth);
-  const sourceY = (imgCenterY - sourceSize / 2) * (imgHeight / img.offsetHeight);
-  const sourceW = sourceSize * (imgWidth / img.offsetWidth);
-  const sourceH = sourceSize * (imgHeight / img.offsetHeight);
+  // The crop circle is centered in the crop area
+  // Circle center in crop area coordinates = (cropAreaSize/2, cropAreaSize/2)
+  // The image wrapper is translated by (cropOffsetX, cropOffsetY) and scaled by cropScale
+  // We need to find what part of the NATURAL image is visible in the circle
+  
+  // Center of circle in wrapper-local coordinates (before transform)
+  const circleCenterInWrapper_X = (cropAreaSize / 2 - cropOffsetX) / cropScale;
+  const circleCenterInWrapper_Y = (cropAreaSize / 2 - cropOffsetY) / cropScale;
+  
+  // The wrapper centers the image, so image top-left in wrapper is at:
+  const imgLeftInWrapper = (cropAreaSize - dispW) / 2;
+  const imgTopInWrapper = (cropAreaSize - dispH) / 2;
+  
+  // Circle center in displayed image coordinates
+  const circleCenterInImg_X = circleCenterInWrapper_X - imgLeftInWrapper;
+  const circleCenterInImg_Y = circleCenterInWrapper_Y - imgTopInWrapper;
+  
+  // Size of circle in displayed image coordinates
+  const circleSizeInDisp = circleSize / cropScale;
+  
+  // Source rectangle in displayed image coordinates
+  const srcDispX = circleCenterInImg_X - circleSizeInDisp / 2;
+  const srcDispY = circleCenterInImg_Y - circleSizeInDisp / 2;
+  
+  // Convert to natural image coordinates
+  const srcX = srcDispX * ratioX;
+  const srcY = srcDispY * ratioY;
+  const srcW = circleSizeInDisp * ratioX;
+  const srcH = circleSizeInDisp * ratioY;
   
   // Draw circular clip
   ctx.beginPath();
-  ctx.arc(circleSize / 2, circleSize / 2, circleSize / 2, 0, Math.PI * 2);
+  ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
   
-  // Draw the image
-  ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, circleSize, circleSize);
+  // Draw the cropped portion
+  ctx.drawImage(cropImage, srcX, srcY, srcW, srcH, 0, 0, outputSize, outputSize);
   
   // Convert to base64
   const croppedImage = canvas.toDataURL('image/jpeg', 0.9);
