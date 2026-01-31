@@ -1950,19 +1950,6 @@ const commentsHTML = comments.length > 0
       </button>
       <div class="post-detail-card">
         <div class="post-detail-header">
-          <div class="post-detail-vote">
-            <button class="vote-btn upvote ${voteState.userVote === 1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Upvote">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 4l-8 8h5v8h6v-8h5z"/>
-              </svg>
-            </button>
-            <span class="vote-count" id="detailVoteCount">${formatLikes(voteState.voteCount)}</span>
-            <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Downvote">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
-              </svg>
-            </button>
-          </div>
           <div class="post-detail-main">
             ${currentUser ? `
             <div class="kebab-menu-container">
@@ -2059,14 +2046,10 @@ ${comments.length} Comments
   
   // Add event listeners
   const backBtn = document.getElementById('backToFeedBtn');
-  const upvoteBtn = postsContainer.querySelector('.vote-btn.upvote');
-  const downvoteBtn = postsContainer.querySelector('.vote-btn.downvote');
   const commentSubmit = document.getElementById('commentSubmit');
   const detailLikeBtn = document.getElementById('detailLikeBtn');
   
   backBtn.addEventListener('click', closePostDetail);
-  upvoteBtn.addEventListener('click', () => handleDetailVote(postId, 1));
-  downvoteBtn.addEventListener('click', () => handleDetailVote(postId, -1));
   commentSubmit.addEventListener('click', () => handleCommentSubmit(postId));
   detailLikeBtn.addEventListener('click', () => handleDetailLike(postId));
   
