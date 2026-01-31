@@ -2379,21 +2379,16 @@ body {
   justify-content: center;
 }
 
-/* Force Cancel & Delete to be exactly the same size */
+/* Ensure Cancel and Delete buttons are exactly the same size */
 .confirm-modal .form-cancel,
 .confirm-modal .form-submit {
-  width: 120px;              /* 고정 width (선택) */
-  height: 44px;              /* ⭐ 핵심: height 고정 */
-  padding: 0 20px;           /* 세로 padding 제거 */
+  flex: 1;
+  max-width: 120px;
+  padding: 12px 20px;
   margin-top: 0;
-
-  display: inline-flex;      /* 텍스트 정렬 안정화 */
-  align-items: center;
-  justify-content: center;
-
   font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1;            /* ⭐ line-height 고정 */
+  line-height: 1.2;
   border-radius: 20px;
   box-sizing: border-box;
 }
