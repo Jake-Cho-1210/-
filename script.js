@@ -1744,7 +1744,7 @@ function openPostDetail(postId) {
     ? comments.map(c => `
       <div class="comment-item">
         <div class="comment-meta">
-          <span class="comment-author">${formatAuthorDisplay(c.author, c.authorNationality)}</span>
+          ${formatAuthorDisplay(c.author, c.authorNationality)}
           <span>•</span>
           <span>${formatCommentTime(c.createdAt)}</span>
         </div>
@@ -1778,13 +1778,13 @@ function openPostDetail(postId) {
           </div>
           <div class="post-detail-main">
             <div class="post-detail-meta">
-              <span class="post-category">${post.categoryLabel}</span>
-              <span>Posted by</span>
-              <span class="post-author">${formatAuthorDisplay(post.author, post.authorNationality)}</span>
-              <span>•</span>
-              <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
-            </div>
-            <h2 class="post-detail-title">${post.title}</h2>
+<span class="post-category">${post.categoryLabel}</span>
+  <span>Posted by</span>
+  ${formatAuthorDisplay(post.author, post.authorNationality)}
+  <span>•</span>
+  <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
+  </div>
+  <h2 class="post-detail-title">${post.title}</h2>
             ${imageHTML}
             <div class="post-detail-body">${post.content}</div>
             <div class="post-detail-actions">
@@ -1798,9 +1798,9 @@ function openPostDetail(postId) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                ${comments.length + post.comments} Comments
-              </span>
-              <span class="action-btn view-count-display" aria-label="Views">
+${comments.length} Comments
+  </span>
+  <span class="action-btn view-count-display" aria-label="Views">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
@@ -1811,7 +1811,7 @@ function openPostDetail(postId) {
           </div>
         </div>
         <div class="comments-section">
-          <div class="comments-header">${comments.length + post.comments} Comments</div>
+          <div class="comments-header">${comments.length} Comments</div>
           <div class="comment-form">
             <textarea class="comment-input" id="commentInput" placeholder="What are your thoughts?"></textarea>
             <button class="comment-submit" id="commentSubmit" ${!currentUser ? 'disabled title="Log in to comment"' : ''}>Comment</button>
@@ -1994,6 +1994,11 @@ function handleCommentSubmit(postId) {
   saveComment(postId, comment);
   input.value = '';
   
+  // Add to current user's myComments for profile view
+  if (!currentUser.myComments) currentUser.myComments = [];
+  currentUser.myComments.push(comment);
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  
   // Re-render post detail to show new comment
   openPostDetail(postId);
 }
@@ -2031,13 +2036,13 @@ function createPostCard(post) {
       </div>
       <div class="post-content">
         <div class="post-meta">
-          <span class="post-category">${post.categoryLabel}</span>
-          <span>Posted by</span>
-          <span class="post-author">${formatAuthorDisplay(post.author, post.authorNationality)}</span>
-          <span>•</span>
-          <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
-        </div>
-        <h3 class="post-title">${post.title}</h3>
+<span class="post-category">${post.categoryLabel}</span>
+  <span>Posted by</span>
+  ${formatAuthorDisplay(post.author, post.authorNationality)}
+  <span>•</span>
+  <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
+  </div>
+  <h3 class="post-title">${post.title}</h3>
         ${imageHTML}
         <p class="post-preview">${post.content}</p>
         <div class="post-actions">
@@ -2051,7 +2056,7 @@ function createPostCard(post) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            ${post.comments + getComments(post.id).length} Comments
+            ${getComments(post.id).length || post.comments} Comments
           </button>
           <span class="action-btn view-count-display" aria-label="Views">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2739,16 +2744,31 @@ function toggleLike(postId) {
 }
 
 function getComments(postId) {
-  return []; // Placeholder function
-}
-
-function saveVoteState(postId, userVote, voteCount) {
-  // Placeholder function
-}
-
-function saveComment(postId, comment) {
-  // Placeholder function
-}
+  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  return allComments[postId] || [];
+  }
+  
+  function saveVoteState(postId, userVote, voteCount) {
+  // TODO: Persist to backend when available
+  }
+  
+  function saveComment(postId, comment) {
+  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  if (!allComments[postId]) {
+    allComments[postId] = [];
+  }
+  allComments[postId].push(comment);
+  localStorage.setItem('postComments', JSON.stringify(allComments));
+  
+  // Update comment count on the post
+  const post = posts.find(p => p.id === postId);
+  if (post) {
+    post.comments = allComments[postId].length;
+  }
+  
+  // TODO: Send to backend API when available
+  // await fetch('/api/comments', { method: 'POST', body: JSON.stringify(comment) });
+  }
 
 // Get persisted view count for a post
 function getViewCount(postId) {

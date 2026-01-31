@@ -1968,6 +1968,8 @@ body {
 /* Clickable Author */
 .clickable-author {
   cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text);
   transition: color 0.15s;
 }
 
