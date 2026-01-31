@@ -929,14 +929,31 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
       });
     });
   }
-  if (tab === 'comments') {
-    document.querySelectorAll('.my-comment-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const postId = parseInt(item.dataset.postId);
-        closeMyPage();
-        openPostDetail(postId);
-      });
+if (tab === 'comments') {
+  // Comments tab sorting
+  document.querySelectorAll('.comments-sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const sort = btn.dataset.sort;
+      renderMyPageView('comments', sort);
     });
+  });
+  // Comment like buttons
+  document.querySelectorAll('.comment-like-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleCommentLikeClick(btn);
+    });
+  });
+  // Click to view post
+  document.querySelectorAll('.my-comment-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const postId = parseInt(item.dataset.postId);
+      closeMyPage();
+      openPostDetail(postId);
+    });
+  });
   }
   if (tab === 'posts') {
     // Posts tab sorting
@@ -1042,21 +1059,46 @@ function renderProfileTabContent(tab, postsSort = 'new') {
   </div>
   `}
   `;
-  } else if (tab === 'comments') {
-  const comments = currentUser.myComments || [];
-    if (comments.length === 0) {
-      return `<div class="empty-tab-message">No comments yet.</div>`;
-    }
-    return `
-      <div class="my-comments-list">
-        ${comments.map(c => `
-          <div class="my-comment-item" data-post-id="${c.postId}">
-            <div class="comment-text">${c.text}</div>
-            <div class="comment-meta">on post #${c.postId} - ${formatTimeAgo(c.createdAt)}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
+} else if (tab === 'comments') {
+  let comments = [...(currentUser.myComments || [])];
+  
+  // Get commentsSort from second parameter (reusing postsSort parameter for comments)
+  const commentsSort = postsSort;
+  
+  // Sort comments
+  if (commentsSort === 'top') {
+  comments = comments.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else {
+  comments = comments.sort((a, b) => b.createdAt - a.createdAt);
+  }
+  
+  return `
+  <div class="comments-sort-row">
+  <button class="comments-sort-btn ${commentsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
+  <button class="comments-sort-btn ${commentsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
+  </div>
+  ${comments.length === 0 ? `<div class="empty-tab-message">No comments yet.</div>` : `
+  <div class="my-comments-list">
+  ${comments.map((c, idx) => {
+  const likeState = getCommentLikeState(c.id || idx);
+  return `
+  <div class="my-comment-item" data-post-id="${c.postId}" data-comment-id="${c.id || idx}">
+  <div class="comment-text">${c.text}</div>
+  <div class="comment-item-footer">
+  <div class="comment-meta">on post #${c.postId} - ${formatTimeAgo(c.createdAt)}</div>
+  <button class="comment-like-btn ${likeState.liked ? 'liked' : ''}" data-comment-id="${c.id || idx}" aria-label="Like comment">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+  <span class="comment-like-count">${likeState.count}</span>
+  </button>
+  </div>
+  </div>
+  `;
+  }).join('')}
+  </div>
+  `}
+  `;
   } else if (tab === 'saved') {
     const savedPostIds = currentUser.savedPosts || [];
     if (savedPostIds.length === 0) {
@@ -1524,19 +1566,36 @@ function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
     });
   }
   
-  if (tab === 'comments') {
-    document.querySelectorAll('.my-comment-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const postId = parseInt(item.dataset.postId);
-        closeUserProfile();
-        openPostDetail(postId);
-      });
+if (tab === 'comments') {
+  // Comments tab sorting
+  document.querySelectorAll('.comments-sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const sort = btn.dataset.sort;
+      renderOtherUserProfile('comments', sort);
     });
+  });
+  // Comment like buttons
+  document.querySelectorAll('.comment-like-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleCommentLikeClick(btn);
+    });
+  });
+  // Click to view post
+  document.querySelectorAll('.my-comment-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const postId = parseInt(item.dataset.postId);
+      closeUserProfile();
+      openPostDetail(postId);
+    });
+  });
   }
-}
-
-// Render content for other user's profile tabs
-function renderOtherUserTabContent(tab, postsSort = 'new') {
+  }
+  
+  // Render content for other user's profile tabs
+  function renderOtherUserTabContent(tab, postsSort = 'new') {
   if (tab === 'posts') {
     // Get posts by this user
     let userPosts = posts.filter(p => p.author === viewingUser.nickname);
@@ -1569,10 +1628,59 @@ function renderOtherUserTabContent(tab, postsSort = 'new') {
   </div>
   `}
   `;
-  } else if (tab === 'comments') {
-  // TODO: Fetch user's comments from backend
-    // For now, return empty since we don't have other users' comments stored
-    return `<div class="empty-tab-message">No comments to show.</div>`;
+} else if (tab === 'comments') {
+  // TODO: Fetch user's comments from backend API
+  // For now, get comments from localStorage that match this user
+  const allPostComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  let userComments = [];
+  
+  // Gather all comments by this user across all posts
+  for (const postId of Object.keys(allPostComments)) {
+    const postComments = allPostComments[postId] || [];
+    for (const comment of postComments) {
+      if (comment.author === viewingUser.nickname) {
+        userComments.push({ ...comment, postId: parseInt(postId) });
+      }
+    }
+  }
+  
+  // Get commentsSort from second parameter
+  const commentsSort = postsSort;
+  
+  // Sort comments
+  if (commentsSort === 'top') {
+    userComments = userComments.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else {
+    userComments = userComments.sort((a, b) => b.createdAt - a.createdAt);
+  }
+  
+  return `
+  <div class="comments-sort-row">
+    <button class="comments-sort-btn ${commentsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
+    <button class="comments-sort-btn ${commentsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
+  </div>
+  ${userComments.length === 0 ? `<div class="empty-tab-message">No comments to show.</div>` : `
+  <div class="my-comments-list">
+    ${userComments.map((c, idx) => {
+      const likeState = getCommentLikeState(c.id || idx);
+      return `
+      <div class="my-comment-item" data-post-id="${c.postId}" data-comment-id="${c.id || idx}">
+        <div class="comment-text">${c.text}</div>
+        <div class="comment-item-footer">
+          <div class="comment-meta">on post #${c.postId} - ${formatTimeAgo(c.createdAt)}</div>
+          <button class="comment-like-btn ${likeState.liked ? 'liked' : ''}" data-comment-id="${c.id || idx}" aria-label="Like comment">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span class="comment-like-count">${likeState.count}</span>
+          </button>
+        </div>
+      </div>
+      `;
+    }).join('')}
+  </div>
+  `}
+  `;
   }
   return '';
 }
@@ -2078,13 +2186,14 @@ function handleCommentSubmit(postId) {
   
   if (!text || !currentUser) return;
   
-  const comment = {
-    id: Date.now(),
-    postId: postId,
-    author: currentUser.nickname || currentUser.name,
-    authorNationality: currentUser.nationality,
-    text: text,
-    createdAt: Date.now()
+const comment = {
+  id: Date.now(),
+  postId: postId,
+  author: currentUser.nickname || currentUser.name,
+  authorNationality: currentUser.nationality,
+  text: text,
+  createdAt: Date.now(),
+  likes: 0 // Initialize likes count - TODO: Remove when backend handles this
   };
   
   saveComment(postId, comment);
@@ -3262,11 +3371,6 @@ function toggleLike(postId) {
   };
 }
 
-function getComments(postId) {
-  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
-  return allComments[postId] || [];
-  }
-
 // ============================================
 // POST PERSISTENCE (temporary frontend storage)
 // TODO: Remove this when backend storage is implemented
@@ -3297,7 +3401,12 @@ function loadUserPosts() {
   // TODO: Persist to backend when available
   }
   
-  function saveComment(postId, comment) {
+  function getComments(postId) {
+  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  return allComments[postId] || [];
+}
+
+function saveComment(postId, comment) {
   const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
   if (!allComments[postId]) {
     allComments[postId] = [];
@@ -3322,4 +3431,77 @@ function getViewCount(postId) {
   const baseCount = post ? (post.views || 0) : 0;
   const addedViews = viewCounts[postId] || 0;
   return baseCount + addedViews;
+}
+
+// Load comment likes data from localStorage
+function loadCommentLikesData() {
+  const data = localStorage.getItem('travexlo_comment_likes');
+  return data ? JSON.parse(data) : {};
+}
+
+// Save comment likes data to localStorage
+function saveCommentLikesData(data) {
+  localStorage.setItem('travexlo_comment_likes', JSON.stringify(data));
+}
+
+// Get like state for a comment
+function getCommentLikeState(commentId) {
+  const likesData = loadCommentLikesData();
+  const commentLikes = likesData[commentId] || { count: 0, likedBy: {} };
+  const userId = getCurrentUserId();
+  const liked = !!commentLikes.likedBy[userId];
+  
+  return {
+    liked: liked,
+    count: commentLikes.count
+  };
+}
+
+// Toggle like for a comment
+function toggleCommentLike(commentId) {
+  const likesData = loadCommentLikesData();
+  const userId = getCurrentUserId();
+  
+  if (!likesData[commentId]) {
+    likesData[commentId] = { count: 0, likedBy: {} };
+  }
+  
+  const commentLikes = likesData[commentId];
+  const wasLiked = !!commentLikes.likedBy[userId];
+  
+  if (wasLiked) {
+    // Unlike
+    delete commentLikes.likedBy[userId];
+    commentLikes.count = Math.max(0, commentLikes.count - 1);
+  } else {
+    // Like
+    commentLikes.likedBy[userId] = true;
+    commentLikes.count = commentLikes.count + 1;
+  }
+  
+  saveCommentLikesData(likesData);
+  
+  return {
+    liked: !wasLiked,
+    count: commentLikes.count
+  };
+}
+
+// Handle comment like button clicks
+function handleCommentLikeClick(btn) {
+  const commentId = btn.dataset.commentId;
+  if (!commentId) return;
+  
+  const newState = toggleCommentLike(commentId);
+  
+  // Update UI
+  btn.classList.toggle('liked', newState.liked);
+  const svg = btn.querySelector('svg');
+  if (svg) {
+    svg.setAttribute('fill', newState.liked ? 'currentColor' : 'none');
+  }
+  const countEl = btn.querySelector('.comment-like-count');
+  if (countEl) {
+    countEl.textContent = newState.count;
+  }
 }

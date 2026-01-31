@@ -1926,9 +1926,79 @@ body {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: white;
+  }
+
+/* Comments Sort Row - matches Posts sort styling */
+.comments-sort-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-/* My Posts List */
+.comments-sort-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.comments-sort-btn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.comments-sort-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Comment item footer with meta and like button */
+.comment-item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+/* Comment Like Button - matches post like styling */
+.comment-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.comment-like-btn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.comment-like-btn.liked {
+  color: #e74c3c;
+}
+
+.comment-like-btn svg {
+  flex-shrink: 0;
+}
+
+.comment-like-count {
+  font-weight: 500;
+}
+  
+  /* My Posts List */
 .my-posts-list {
   display: flex;
   flex-direction: column;
