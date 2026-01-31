@@ -802,7 +802,7 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
       <!-- Profile Header -->
       <div class="profile-header-row">
         <div class="profile-avatar-wrapper">
-          <div class="profile-avatar-large profile-avatar-clickable" id="profileAvatarLarge" title="Click to change profile picture">
+          <div class="profile-avatar-large profile-avatar-clickable" id="profileAvatarLarge" title="Click to edit profile picture">
             ${profileImg ? `<img src="${profileImg}" alt="Profile" onerror="this.parentElement.innerHTML='<svg width=\\'48\\' height=\\'48\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
             <div class="avatar-edit-overlay">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -810,6 +810,23 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
             </div>
+          </div>
+          <!-- Avatar Action Menu -->
+          <div class="avatar-action-menu" id="avatarActionMenu" style="display: none;">
+            <button class="avatar-action-item" id="avatarEditBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Edit
+            </button>
+            <button class="avatar-action-item avatar-action-remove" id="avatarRemoveBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Remove
+            </button>
           </div>
           <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
         </div>
@@ -858,13 +875,45 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
     if (form) form.addEventListener('submit', handleMyPageSave);
   }
   
-  // Avatar click to upload image
+  // Avatar click to show action menu
   const avatarEl = document.getElementById('profileAvatarLarge');
   const avatarFileInput = document.getElementById('avatarFileInput');
-  if (avatarEl && avatarFileInput) {
-    avatarEl.addEventListener('click', () => {
-      avatarFileInput.click();
+  const avatarActionMenu = document.getElementById('avatarActionMenu');
+  const avatarEditBtn = document.getElementById('avatarEditBtn');
+  const avatarRemoveBtn = document.getElementById('avatarRemoveBtn');
+  
+  if (avatarEl && avatarActionMenu) {
+    avatarEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = avatarActionMenu.style.display === 'block';
+      avatarActionMenu.style.display = isVisible ? 'none' : 'block';
     });
+    
+    // Edit button - opens file picker
+    if (avatarEditBtn && avatarFileInput) {
+      avatarEditBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        avatarActionMenu.style.display = 'none';
+        avatarFileInput.click();
+      });
+    }
+    
+    // Remove button - resets to default
+    if (avatarRemoveBtn) {
+      avatarRemoveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        avatarActionMenu.style.display = 'none';
+        removeAvatar();
+      });
+    }
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+      avatarActionMenu.style.display = 'none';
+    });
+  }
+  
+  if (avatarFileInput) {
     avatarFileInput.addEventListener('change', handleAvatarUpload);
   }
   
@@ -1024,6 +1073,38 @@ function renderProfileTabContent(tab, postsSort = 'new') {
     `;
   }
   return '';
+}
+
+// Remove avatar - reset to default placeholder
+function removeAvatar() {
+  if (!currentUser) return;
+  
+  // Clear profile image
+  currentUser.profileImage = null;
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  
+  // Update avatar display in My Page
+  const avatarEl = document.getElementById('profileAvatarLarge');
+  if (avatarEl) {
+    avatarEl.innerHTML = `
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <div class="avatar-edit-overlay">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+      </div>
+    `;
+  }
+  
+  // Update navbar profile button
+  renderProfileButton();
+  
+  // TODO: When backend API is available, persist removal
+  // await fetch('/api/remove-avatar', { method: 'DELETE' });
 }
 
 // Avatar crop state - simplified approach
@@ -1758,6 +1839,23 @@ function openPostDetail(postId) {
   downvoteBtn.addEventListener('click', () => handleDetailVote(postId, -1));
   commentSubmit.addEventListener('click', () => handleCommentSubmit(postId));
   detailLikeBtn.addEventListener('click', () => handleDetailLike(postId));
+  
+  // Add clickable author handlers for post author and comment authors
+  document.querySelectorAll('.clickable-author').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const author = el.dataset.author;
+      const nationality = el.dataset.nationality;
+      // Don't open own profile - go to My Page instead
+      if (currentUser && (author === currentUser.nickname || author === currentUser.name)) {
+        closePostDetail();
+        openMyPage();
+      } else {
+        closePostDetail();
+        openUserProfile(author, nationality);
+      }
+    });
+  });
 }
 
 // Handle like in detail view

@@ -2103,3 +2103,53 @@ body {
   object-fit: cover;
   border-radius: 50%;
 }
+
+/* Avatar Action Menu */
+.profile-avatar-wrapper {
+  position: relative;
+}
+
+.avatar-action-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.avatar-action-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  text-align: left;
+}
+
+.avatar-action-item:hover {
+  background: var(--color-hover);
+}
+
+.avatar-action-item svg {
+  flex-shrink: 0;
+}
+
+.avatar-action-remove {
+  color: #dc3545;
+}
+
+.avatar-action-remove:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
