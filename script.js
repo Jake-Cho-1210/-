@@ -570,8 +570,7 @@ const sendResetBtn = document.getElementById('sendResetBtn');
 const resetSuccess = document.getElementById('resetSuccess');
 const backToLoginBtn = document.getElementById('backToLoginBtn');
 
-// Theme Elements
-const themeToggleBtn = document.getElementById('themeToggleBtn');
+// Theme Elements (profile toggle handled in renderMyPageView)
 
 let isSignupMode = false;
 
@@ -839,16 +838,9 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
       </svg>`;
   }
   
-  postsContainer.innerHTML = `
-    <div class="my-page-view">
-      <button class="back-btn" id="profileBackBtn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        Back
-      </button>
-      
-      <div class="profile-header-row">
+postsContainer.innerHTML = `
+  <div class="my-page-view">
+  <div class="profile-header-row">
         <div class="profile-avatar-wrapper">
           <div class="profile-avatar-large profile-avatar-clickable" id="profileAvatarLarge">
             ${avatarHTML}
@@ -882,12 +874,30 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
           <div class="profile-stats-inline">
             <span class="profile-stat-item"><strong>0</strong> Following</span>
             <span class="profile-stat-item"><strong>0</strong> Followers</span>
-          </div>
-        </div>
-        <button class="logout-btn-header" id="logoutBtnHeader">Logout</button>
-      </div>
-      
-      <div class="profile-tabs">
+</div>
+  </div>
+  <div class="profile-header-actions">
+  <button class="theme-toggle-btn" id="profileThemeToggle" aria-label="Toggle theme">
+  <svg class="theme-icon sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+  <svg class="theme-icon moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+  </button>
+  <button class="logout-btn-header" id="logoutBtnHeader">Logout</button>
+  </div>
+  </div>
+  
+  <div class="profile-tabs">
         <button class="profile-tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">Edit Profile</button>
         <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
         <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
@@ -901,7 +911,8 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
   `;
   
   // Setup event handlers
-  document.getElementById('profileBackBtn').addEventListener('click', closeMyPage);
+  // Theme toggle handler
+  document.getElementById('profileThemeToggle')?.addEventListener('click', toggleTheme);
   
   // Logout button handler
   document.getElementById('logoutBtnHeader')?.addEventListener('click', () => {
@@ -1180,45 +1191,227 @@ function removeAvatar() {
   showToast('Profile picture removed');
 }
 
-// Handle avatar file upload
+// Avatar crop state
+let cropImageSrc = null;
+let cropZoom = 1;
+let cropOffsetX = 0;
+let cropOffsetY = 0;
+let isDraggingCrop = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+// Handle avatar file upload - opens crop modal
 function handleAvatarUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   
   if (!file.type.startsWith('image/')) {
-    alert('Please select an image file.');
-    return;
+  alert('Please select an image file.');
+  return;
   }
   
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   if (file.size > MAX_SIZE) {
-    alert('Image size must be less than 5MB.');
-    return;
+  alert('Image size must be less than 5MB.');
+  return;
   }
   
   const reader = new FileReader();
   reader.onload = function(event) {
-    currentUser.profileImage = event.target.result;
+    cropImageSrc = event.target.result;
+    openAvatarCropModal();
+  };
+  reader.readAsDataURL(file);
+  
+  // Reset file input for re-upload
+  e.target.value = '';
+}
+
+// Open avatar crop modal
+function openAvatarCropModal() {
+  const modal = document.getElementById('avatarCropModal');
+  const cropImage = document.getElementById('cropImage');
+  const cropImageWrapper = document.getElementById('cropImageWrapper');
+  const zoomSlider = document.getElementById('zoomSlider');
+  
+  // Reset crop state
+  cropZoom = 1;
+  cropOffsetX = 0;
+  cropOffsetY = 0;
+  
+  // Set image and reset slider
+  cropImage.src = cropImageSrc;
+  if (zoomSlider) zoomSlider.value = 100;
+  
+  // Apply initial transform
+  updateCropTransform();
+  
+  modal.style.display = 'flex';
+  
+  // Setup drag handlers
+  setupCropDragHandlers();
+}
+
+// Update crop image transform
+function updateCropTransform() {
+  const cropImageWrapper = document.getElementById('cropImageWrapper');
+  if (cropImageWrapper) {
+    cropImageWrapper.style.transform = `translate(${cropOffsetX}px, ${cropOffsetY}px) scale(${cropZoom})`;
+  }
+}
+
+// Setup drag handlers for crop
+function setupCropDragHandlers() {
+  const cropArea = document.getElementById('cropArea');
+  const zoomSlider = document.getElementById('zoomSlider');
+  
+  if (!cropArea) return;
+  
+  cropArea.onmousedown = (e) => {
+    isDraggingCrop = true;
+    dragStartX = e.clientX - cropOffsetX;
+    dragStartY = e.clientY - cropOffsetY;
+    cropArea.style.cursor = 'grabbing';
+    e.preventDefault();
+  };
+  
+  cropArea.ontouchstart = (e) => {
+    isDraggingCrop = true;
+    dragStartX = e.touches[0].clientX - cropOffsetX;
+    dragStartY = e.touches[0].clientY - cropOffsetY;
+    e.preventDefault();
+  };
+  
+  document.onmousemove = (e) => {
+    if (!isDraggingCrop) return;
+    cropOffsetX = e.clientX - dragStartX;
+    cropOffsetY = e.clientY - dragStartY;
+    updateCropTransform();
+  };
+  
+  document.ontouchmove = (e) => {
+    if (!isDraggingCrop) return;
+    cropOffsetX = e.touches[0].clientX - dragStartX;
+    cropOffsetY = e.touches[0].clientY - dragStartY;
+    updateCropTransform();
+  };
+  
+  document.onmouseup = () => {
+    isDraggingCrop = false;
+    if (cropArea) cropArea.style.cursor = 'grab';
+  };
+  
+  document.ontouchend = () => {
+    isDraggingCrop = false;
+  };
+  
+  // Zoom slider handler
+  if (zoomSlider) {
+    zoomSlider.oninput = function() {
+      cropZoom = this.value / 100;
+      updateCropTransform();
+    };
+  }
+}
+  
+  // Close avatar crop modal
+  function closeAvatarCropModal() {
+  const modal = document.getElementById('avatarCropModal');
+  if (modal) modal.style.display = 'none';
+  
+  // Clean up drag handlers
+  document.onmousemove = null;
+  document.onmouseup = null;
+  document.ontouchmove = null;
+  document.ontouchend = null;
+  isDraggingCrop = false;
+  }
+  
+  // Apply avatar crop - generates cropped image with canvas
+  function applyAvatarCrop() {
+  const cropImage = document.getElementById('cropImage');
+  const cropArea = document.getElementById('cropArea');
+  
+  if (!cropImage || !cropArea) {
+    closeAvatarCropModal();
+    return;
+  }
+  
+  // Create canvas for cropping
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Output size (square for circular avatar)
+  const outputSize = 200;
+  canvas.width = outputSize;
+  canvas.height = outputSize;
+  
+  // Get crop area dimensions
+  const cropAreaRect = cropArea.getBoundingClientRect();
+  const cropAreaSize = Math.min(cropAreaRect.width, cropAreaRect.height);
+  
+  // Create image for drawing
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    // Calculate image display size within crop area
+    const aspectRatio = img.width / img.height;
+    let displayWidth, displayHeight;
+    
+    if (aspectRatio > 1) {
+      displayHeight = cropAreaSize;
+      displayWidth = cropAreaSize * aspectRatio;
+    } else {
+      displayWidth = cropAreaSize;
+      displayHeight = cropAreaSize / aspectRatio;
+    }
+    
+    // Apply zoom
+    displayWidth *= cropZoom;
+    displayHeight *= cropZoom;
+    
+    // Calculate the center offset
+    const centerX = (cropAreaSize - displayWidth) / 2 + cropOffsetX;
+    const centerY = (cropAreaSize - displayHeight) / 2 + cropOffsetY;
+    
+    // Calculate source coordinates
+    const scaleX = img.width / displayWidth;
+    const scaleY = img.height / displayHeight;
+    
+    const srcX = -centerX * scaleX;
+    const srcY = -centerY * scaleY;
+    const srcW = cropAreaSize * scaleX;
+    const srcH = cropAreaSize * scaleY;
+    
+    // Draw the cropped image
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outputSize, outputSize);
+    
+    // Save as data URL
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    
+    // Update user profile with cropped image
+    currentUser.profileImage = croppedDataUrl;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Update UI
+    renderProfileButton();
+    renderMyPageView(activeProfileTab);
+    closeAvatarCropModal();
+    showToast('Profile picture updated');
+  };
+  
+  img.onerror = function() {
+    // Fallback: save the original image if crop fails
+    currentUser.profileImage = cropImageSrc;
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     renderProfileButton();
     renderMyPageView(activeProfileTab);
+    closeAvatarCropModal();
     showToast('Profile picture updated');
   };
-  reader.readAsDataURL(file);
-}
-
-// Close avatar crop modal
-function closeAvatarCropModal() {
-  const modal = document.getElementById('avatarCropModal');
-  if (modal) modal.style.display = 'none';
-}
-
-// Apply avatar crop
-function applyAvatarCrop() {
-  // Placeholder for crop functionality
-  closeAvatarCropModal();
-  showToast('Profile picture updated');
-}
+  
+  img.src = cropImageSrc;
+  }
 
 // Open other user's profile
 function openUserProfile(author, nationality, skipHistory = false) {
@@ -1971,22 +2164,9 @@ function createPostCard(post) {
       </div>`
     : '';
 
-  return `
-    <article class="post-card" data-post-id="${post.id}" tabindex="0" role="button" aria-label="View post: ${post.title}">
-      <div class="vote-section">
-        <button class="vote-btn upvote ${voteState.userVote === 1 ? 'active' : ''}" aria-label="Upvote">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4l-8 8h5v8h6v-8h5z"/>
-          </svg>
-        </button>
-        <span class="vote-count">${formatLikes(voteState.voteCount)}</span>
-        <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" aria-label="Downvote">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
-          </svg>
-        </button>
-      </div>
-      <div class="post-content">
+return `
+  <article class="post-card" data-post-id="${post.id}" tabindex="0" role="button" aria-label="View post: ${post.title}">
+  <div class="post-content">
         ${currentUser ? `
         <div class="kebab-menu-container">
           <button class="kebab-menu-btn" data-post-id="${post.id}" aria-label="Post options">
@@ -2153,13 +2333,8 @@ function renderPosts() {
     return;
   }
 
-  postsContainer.innerHTML = filtered.map(createPostCard).join('');
-
-  // Add vote button listeners
-  document.querySelectorAll('.post-card .vote-btn').forEach(btn => {
-    btn.addEventListener('click', handleVote);
-  });
-
+postsContainer.innerHTML = filtered.map(createPostCard).join('');
+  
   // Add like button listeners
   document.querySelectorAll('.post-card .like-btn').forEach(btn => {
     btn.addEventListener('click', handleLikeClick);
@@ -2194,8 +2369,8 @@ function renderPosts() {
   const postId = parseInt(card.dataset.postId);
   
   card.addEventListener('click', (e) => {
-  // Block vote, like buttons, and author clicks
-  if (e.target.closest('.vote-btn') || e.target.closest('.like-btn') || e.target.closest('.clickable-author') || e.target.closest('.kebab-menu-container')) {
+  // Block like buttons, author clicks, and kebab menu
+  if (e.target.closest('.like-btn') || e.target.closest('.clickable-author') || e.target.closest('.kebab-menu-container')) {
   return;
   }
   openPostDetail(postId);
@@ -2391,11 +2566,8 @@ langTabs.forEach(tab => {
 mobileMenuBtn.addEventListener('click', openMobileSidebar);
 closeSidebarBtn.addEventListener('click', closeMobileSidebar);
 sidebarOverlay.addEventListener('click', closeMobileSidebar);
-
-// Theme toggle
-themeToggleBtn.addEventListener('click', toggleTheme);
-
-// Logo click - return to homepage feed
+  
+  // Logo click - return to homepage feed
 const logoLink = document.getElementById('logoLink');
 logoLink.addEventListener('click', (e) => {
   e.preventDefault();
