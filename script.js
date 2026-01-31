@@ -603,6 +603,9 @@ window.addEventListener('popstate', function(event) {
     feedHeader.style.display = 'flex';
     updateFeedTabs();
     renderPosts();
+
+    history.replaceState({ view: 'feed' }, '', window.location.pathname);
+    
   } else if (state.view === 'post') {
     // Return to post detail
     openPostDetail(state.postId, true);
@@ -2171,6 +2174,8 @@ function closePostDetail() {
 function restoreToFeed() {
   isDetailView = false;
   currentPostId = null;
+
+  history.replaceState({ view: 'feed' }, '', window.location.pathname);
   
   // Restore saved feed state if available
   if (savedFeedState) {
