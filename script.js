@@ -2386,6 +2386,7 @@ return `
   <svg viewBox="0 0 24 24" fill="${isPostSaved(post.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
   </svg>
+  <span class="save-text">${isPostSaved(post.id) ? 'Saved' : 'Save'}</span>
   </button>
   <span class="action-btn view-count-display" aria-label="Views">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2583,8 +2584,8 @@ function handleLikeClick(e) {
   btn.querySelector('.like-count').textContent = newState.count;
 }
 
-// Handle save button clicks
-function handleSaveClick(e) {
+  // Handle save button clicks
+  function handleSaveClick(e) {
   e.stopPropagation();
   const btn = e.currentTarget;
   const postId = parseInt(btn.dataset.postId);
@@ -2596,8 +2597,14 @@ function handleSaveClick(e) {
   const svg = btn.querySelector('svg');
   svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
   
+  // Update text label
+  const textSpan = btn.querySelector('.save-text');
+  if (textSpan) {
+    textSpan.textContent = isSaved ? 'Saved' : 'Save';
+  }
+  
   showToast(isSaved ? 'Post saved' : 'Post unsaved');
-}
+  }
 
 // Handle category selection
 function handleCategoryClick(e) {
