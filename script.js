@@ -606,9 +606,11 @@ window.addEventListener('popstate', function(event) {
   } else if (state.view === 'post') {
     // Return to post detail
     openPostDetail(state.postId, true);
-  } else if (state.view === 'mypage') {
-    // Return to My Page
-    openMyPage(true);
+} else if (state.view === 'mypage') {
+  // Return to My Page with saved tab
+  activeProfileTab = state.tab || 'edit';
+  openMyPage(true);
+  renderMyPageView(activeProfileTab);
   } else if (state.view === 'userprofile') {
     // Return to user profile
     openUserProfile(state.author, state.nationality, true);
@@ -798,9 +800,9 @@ function openMyPage(skipHistory = false) {
   return;
   }
   
-  // Push to history for back navigation (unless restoring from popstate)
+// Push to history for back navigation (unless restoring from popstate)
   if (!skipHistory) {
-    history.pushState({ view: 'mypage' }, '', '#mypage');
+  history.pushState({ view: 'mypage', tab: activeProfileTab || 'edit' }, '', '#mypage');
   }
   
   // Save scroll position
@@ -957,11 +959,15 @@ postsContainer.innerHTML = `
   // Avatar upload handler
   document.getElementById('avatarUpload')?.addEventListener('change', handleAvatarUpload);
   
-  // Tab switching
+// Tab switching
   document.querySelectorAll('.profile-tab').forEach(tabBtn => {
-    tabBtn.addEventListener('click', () => {
-      renderMyPageView(tabBtn.dataset.tab);
-    });
+  tabBtn.addEventListener('click', () => {
+  const newTab = tabBtn.dataset.tab;
+  activeProfileTab = newTab;
+  // Replace history state to preserve current tab when navigating back
+  history.replaceState({ view: 'mypage', tab: newTab }, '', '#mypage');
+  renderMyPageView(newTab);
+  });
   });
   
 // Tab-specific event handlers
@@ -1233,24 +1239,51 @@ function openAvatarCropModal() {
   const cropImage = document.getElementById('cropImage');
   const cropImageWrapper = document.getElementById('cropImageWrapper');
   const zoomSlider = document.getElementById('zoomSlider');
+  const cropArea = document.getElementById('cropArea');
   
-  // Reset crop state
-  cropZoom = 1;
+  // Reset crop state - will be computed after image loads
   cropOffsetX = 0;
   cropOffsetY = 0;
   
-  // Set image and reset slider
+  // Set image source
   cropImage.src = cropImageSrc;
-  if (zoomSlider) zoomSlider.value = 100;
   
-  // Apply initial transform
-  updateCropTransform();
-  
+  // Show modal first so cropArea has dimensions
   modal.style.display = 'flex';
+  
+  // Wait for image to load to compute proper fit-to-frame scale
+  cropImage.onload = function() {
+    const cropAreaSize = Math.min(cropArea.offsetWidth, cropArea.offsetHeight) || 250;
+    const imgWidth = cropImage.naturalWidth;
+    const imgHeight = cropImage.naturalHeight;
+    
+    // Compute scale to fit image inside crop area (contain mode)
+    // The smaller dimension of the image should fit the crop area
+    const scaleToFitWidth = cropAreaSize / imgWidth;
+    const scaleToFitHeight = cropAreaSize / imgHeight;
+    
+    // Use the larger scale so the smaller dimension fills the frame
+    // This ensures no empty space in the circular crop area
+    cropZoom = Math.max(scaleToFitWidth, scaleToFitHeight);
+    
+    // Update slider to reflect the computed zoom (slider range: 50-300, default center is 100)
+    // Map cropZoom to slider value: cropZoom * 100 gives the percentage
+    if (zoomSlider) {
+      const sliderValue = Math.round(cropZoom * 100);
+      zoomSlider.value = Math.max(50, Math.min(300, sliderValue));
+    }
+    
+    // Center the image
+    cropOffsetX = 0;
+    cropOffsetY = 0;
+    
+    // Apply initial transform
+    updateCropTransform();
+  };
   
   // Setup drag handlers
   setupCropDragHandlers();
-}
+  }
 
 // Update crop image transform
 function updateCropTransform() {
