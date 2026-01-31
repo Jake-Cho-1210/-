@@ -373,12 +373,14 @@ body {
 
 .form-submit {
   padding: 12px 20px;
+  min-width: 100px;
   background-color: var(--color-primary);
   border: none;
   border-radius: 20px;
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
   margin-top: 8px;
 }
@@ -1845,12 +1847,14 @@ body {
 
 .form-cancel {
   padding: 12px 20px;
+  min-width: 100px;
   background: transparent;
   border: 1px solid var(--color-border-light);
   border-radius: 20px;
   color: var(--color-text);
   font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
   transition: background-color 0.15s;
   }
@@ -1996,6 +2000,13 @@ body {
 
 .comment-like-count {
   font-weight: 500;
+}
+
+/* Comment actions row in post detail */
+.comment-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
 }
   
   /* My Posts List */

@@ -1031,9 +1031,9 @@ function renderProfileTabContent(tab, postsSort = 'new') {
     // TODO: Connect to backend API when available
     let userPosts = posts.filter(p => p.author === (currentUser.nickname || currentUser.name));
     
-  // Sort posts
+// Sort posts by actual like counts
   if (postsSort === 'top') {
-  userPosts = userPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  userPosts = userPosts.sort((a, b) => getLikeState(b.id).count - getLikeState(a.id).count);
   } else {
   userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
   }
@@ -1045,21 +1045,24 @@ function renderProfileTabContent(tab, postsSort = 'new') {
   </div>
   ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
   <div class="my-posts-list">
-  ${userPosts.map(p => `
+  ${userPosts.map(p => {
+  const likeState = getLikeState(p.id);
+  return `
   <div class="my-post-item" data-post-id="${p.id}">
   <div class="my-post-title">${p.title}</div>
   <div class="my-post-meta">
   <span>${formatTimeAgo(p.createdAt)}</span>
   <span>${p.categoryLabel}</span>
-  <span>${p.likes || 0} likes</span>
+  <span>${likeState.count} likes</span>
   <span>${p.comments} comments</span>
   </div>
   </div>
-  `).join('')}
+  `;
+  }).join('')}
   </div>
   `}
   `;
-} else if (tab === 'comments') {
+  } else if (tab === 'comments') {
   let comments = [...(currentUser.myComments || [])];
   
   // Get commentsSort from second parameter (reusing postsSort parameter for comments)
@@ -1600,9 +1603,9 @@ if (tab === 'comments') {
     // Get posts by this user
     let userPosts = posts.filter(p => p.author === viewingUser.nickname);
     
-  // Sort posts
+// Sort posts by actual like counts
   if (postsSort === 'top') {
-  userPosts = userPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  userPosts = userPosts.sort((a, b) => getLikeState(b.id).count - getLikeState(a.id).count);
   } else {
   userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
   }
@@ -1614,21 +1617,24 @@ if (tab === 'comments') {
   </div>
   ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
   <div class="my-posts-list">
-  ${userPosts.map(p => `
+  ${userPosts.map(p => {
+  const likeState = getLikeState(p.id);
+  return `
   <div class="my-post-item" data-post-id="${p.id}">
   <div class="my-post-title">${p.title}</div>
   <div class="my-post-meta">
   <span>${formatTimeAgo(p.createdAt)}</span>
   <span>${p.categoryLabel}</span>
-  <span>${p.likes || 0} likes</span>
+  <span>${likeState.count} likes</span>
   <span>${p.comments} comments</span>
   </div>
   </div>
-  `).join('')}
+  `;
+  }).join('')}
   </div>
   `}
   `;
-} else if (tab === 'comments') {
+  } else if (tab === 'comments') {
   // TODO: Fetch user's comments from backend API
   // For now, get comments from localStorage that match this user
   const allPostComments = JSON.parse(localStorage.getItem('postComments') || '{}');
@@ -1865,55 +1871,66 @@ function openPostDetail(postId) {
     ? `<img src="${post.image}" alt="${post.title}" class="post-detail-image" />`
     : '';
   
-  const commentsHTML = comments.length > 0
-    ? comments.map((c, index) => `
-      <div class="comment-item" data-comment-index="${index}" data-post-id="${postId}">
-        ${currentUser ? `
-        <div class="kebab-menu-container">
-          <button class="kebab-menu-btn comment-menu-btn" data-comment-index="${index}" aria-label="Comment options">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="5" r="2"></circle>
-              <circle cx="12" cy="12" r="2"></circle>
-              <circle cx="12" cy="19" r="2"></circle>
-            </svg>
-          </button>
-          <div class="kebab-menu comment-menu" data-comment-index="${index}">
-            ${isCommentOwner(c) ? `
-              <button class="kebab-menu-item" data-action="edit-comment" data-comment-index="${index}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                Edit
-              </button>
-              <button class="kebab-menu-item danger" data-action="delete-comment" data-comment-index="${index}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-                Delete
-              </button>
-            ` : `
-              <button class="kebab-menu-item" data-action="report-comment" data-comment-index="${index}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                  <line x1="4" y1="22" x2="4" y2="15"></line>
-                </svg>
-                Report
-              </button>
-            `}
-          </div>
-        </div>
-        ` : ''}
-        <div class="comment-meta">
-          ${formatAuthorDisplay(c.author, c.authorNationality)}
-          <span>•</span>
-          <span>${formatCommentTime(c.createdAt)}</span>
-        </div>
-        <p class="comment-text" data-comment-index="${index}">${c.text}</p>
-      </div>
-    `).join('')
-    : '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+const commentsHTML = comments.length > 0
+  ? comments.map((c, index) => {
+  const commentLikeState = getCommentLikeState(c.id || index);
+  return `
+  <div class="comment-item" data-comment-index="${index}" data-post-id="${postId}" data-comment-id="${c.id || index}">
+  ${currentUser ? `
+  <div class="kebab-menu-container">
+  <button class="kebab-menu-btn comment-menu-btn" data-comment-index="${index}" aria-label="Comment options">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+  <circle cx="12" cy="5" r="2"></circle>
+  <circle cx="12" cy="12" r="2"></circle>
+  <circle cx="12" cy="19" r="2"></circle>
+  </svg>
+  </button>
+  <div class="kebab-menu comment-menu" data-comment-index="${index}">
+  ${isCommentOwner(c) ? `
+  <button class="kebab-menu-item" data-action="edit-comment" data-comment-index="${index}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+  </svg>
+  Edit
+  </button>
+  <button class="kebab-menu-item danger" data-action="delete-comment" data-comment-index="${index}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <polyline points="3 6 5 6 21 6"></polyline>
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>
+  Delete
+  </button>
+  ` : `
+  <button class="kebab-menu-item" data-action="report-comment" data-comment-index="${index}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+  <line x1="4" y1="22" x2="4" y2="15"></line>
+  </svg>
+  Report
+  </button>
+  `}
+  </div>
+  </div>
+  ` : ''}
+  <div class="comment-meta">
+  ${formatAuthorDisplay(c.author, c.authorNationality)}
+  <span>•</span>
+  <span>${formatCommentTime(c.createdAt)}</span>
+  </div>
+  <p class="comment-text" data-comment-index="${index}">${c.text}</p>
+  <div class="comment-actions">
+  <button class="comment-like-btn ${commentLikeState.liked ? 'liked' : ''}" data-comment-id="${c.id || index}" aria-label="Like comment">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="${commentLikeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+  <span class="comment-like-count">${commentLikeState.count}</span>
+  </button>
+  </div>
+  </div>
+  `;
+  }).join('')
+  : '<p class="no-comments">No comments yet. Be the first to comment!</p>';
   
   postsContainer.innerHTML = `
     <div class="post-detail-inline">
@@ -2058,11 +2075,19 @@ ${comments.length} Comments
   });
   });
   
-  // Setup kebab menu handlers for post and comments
+// Setup kebab menu handlers for post and comments
   setupKebabMenuHandlers();
-}
-
-// Handle like in detail view
+  
+  // Setup comment like handlers in post detail
+  document.querySelectorAll('.comment-item .comment-like-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleCommentLikeClick(btn);
+    });
+  });
+  }
+  
+  // Handle like in detail view
 function handleDetailLike(postId) {
   const newState = toggleLike(postId);
   const btn = document.getElementById('detailLikeBtn');
