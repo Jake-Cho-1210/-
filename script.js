@@ -850,17 +850,32 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
       
       <div class="profile-header-row">
         <div class="profile-avatar-wrapper">
-          <div class="profile-avatar-large" id="profileAvatarLarge">
+          <div class="profile-avatar-large profile-avatar-clickable" id="profileAvatarLarge">
             ${avatarHTML}
+            <div class="avatar-camera-overlay">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
           </div>
-          <label class="avatar-edit-btn" for="avatarUpload" title="Change avatar">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-            </svg>
-          </label>
+          <div class="avatar-action-menu" id="avatarActionMenu" style="display: none;">
+            <button class="avatar-action-item" id="avatarEditBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Edit
+            </button>
+            <button class="avatar-action-item avatar-action-danger" id="avatarRemoveBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Remove
+            </button>
+          </div>
           <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
-          ${currentUser.profileImage ? `<button class="avatar-remove-btn" id="removeAvatarBtn" title="Remove avatar">&times;</button>` : ''}
         </div>
         <div class="profile-info">
           <span class="profile-display-name">${flag} ${currentUser.nickname || currentUser.name}</span>
@@ -897,11 +912,39 @@ function renderMyPageView(tab = 'edit', postsSort = 'new') {
     showToast('Logged out successfully');
   });
   
+  // Avatar click handler - show/hide action menu
+  const avatarLarge = document.getElementById('profileAvatarLarge');
+  const avatarMenu = document.getElementById('avatarActionMenu');
+  
+  avatarLarge?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = avatarMenu.style.display === 'block';
+    avatarMenu.style.display = isVisible ? 'none' : 'block';
+  });
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (avatarMenu && !avatarMenu.contains(e.target) && !avatarLarge.contains(e.target)) {
+      avatarMenu.style.display = 'none';
+    }
+  });
+  
+  // Edit button - open file picker
+  document.getElementById('avatarEditBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    avatarMenu.style.display = 'none';
+    document.getElementById('avatarUpload')?.click();
+  });
+  
+  // Remove button - reset avatar
+  document.getElementById('avatarRemoveBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    avatarMenu.style.display = 'none';
+    removeAvatar();
+  });
+  
   // Avatar upload handler
   document.getElementById('avatarUpload')?.addEventListener('change', handleAvatarUpload);
-  
-  // Remove avatar button handler
-  document.getElementById('removeAvatarBtn')?.addEventListener('click', removeAvatar);
   
   // Tab switching
   document.querySelectorAll('.profile-tab').forEach(tabBtn => {
@@ -1393,34 +1436,14 @@ document.querySelectorAll('.my-post-item').forEach(item => {
 }
 
 // Close other user profile
+// Close User Profile - use history.back() for proper back navigation
 function closeUserProfile() {
-  // Use browser history for back navigation
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
-  }
-  
-  // Fallback: if no history (direct page access), go to feed
-  viewingUser = null;
-  isMyPageView = false;
-  feedHeader.style.display = 'flex';
-  updateFeedTabs();
-  renderPosts();
+  window.history.back();
   }
 
-// Close My Page and return to feed
-function closeMyPage() {
-  // Use browser history for back navigation
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
-  }
-  
-  // Fallback: if no history (direct page access), go to feed
-  isMyPageView = false;
-  feedHeader.style.display = 'flex';
-  updateFeedTabs();
-  renderPosts();
+// Close My Page - use history.back() for proper back navigation
+  function closeMyPage() {
+  window.history.back();
   }
 
 // Handle My Page save
@@ -1791,16 +1814,10 @@ function handleDetailLike(postId) {
 }
 
 // Close post detail and return to feed
+// Close Post Detail - use history.back() for proper back navigation
 function closePostDetail() {
-  // Use browser history for back navigation
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
+  window.history.back();
   }
-  
-  // Fallback: if no history (direct page access), go to feed
-  restoreToFeed();
-}
 
 // Internal function to restore feed state (used by popstate handler)
 function restoreToFeed() {
