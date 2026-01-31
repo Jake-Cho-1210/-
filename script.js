@@ -3309,14 +3309,31 @@ function isCommentOwner(comment) {
   return comment.author === currentUser.nickname || comment.author === currentUser.name;
   }
 
-function formatAuthorDisplay(author, nationality, clickable = true) {
+function formatAuthorDisplay(author, nationality, clickable = true, profileImage = null) {
   if (!author) return '';
   const flag = nationality ? getFlagEmoji(nationality) : '';
   const displayName = flag ? `${flag} ${author}` : author;
-  if (clickable) {
-    return `<span class="clickable-author" data-author="${author}" data-nationality="${nationality || ''}">${displayName}</span>`;
+  
+  // Check if this author is the current user and use their profile image
+  let avatarSrc = profileImage;
+  if (!avatarSrc && currentUser && (author === currentUser.nickname || author === currentUser.name)) {
+    avatarSrc = currentUser.profileImage;
   }
-  return displayName;
+  
+  // Build avatar HTML - use image if available, otherwise show initials
+  let avatarHTML;
+  if (avatarSrc) {
+    avatarHTML = `<img src="${avatarSrc}" alt="" class="author-avatar">`;
+  } else {
+    // Generate initials from author name (first letter, or first two if multiple words)
+    const initials = author.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    avatarHTML = `<span class="author-avatar author-avatar-initials">${initials}</span>`;
+  }
+  
+  if (clickable) {
+    return `<span class="author-with-avatar clickable-author" data-author="${author}" data-nationality="${nationality || ''}">${avatarHTML}${displayName}</span>`;
+  }
+  return `<span class="author-with-avatar">${avatarHTML}${displayName}</span>`;
   }
 
 // Load view counts from localStorage

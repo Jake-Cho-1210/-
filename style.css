@@ -2120,9 +2120,34 @@ body {
 .clickable-author:hover {
   color: var(--color-primary);
   text-decoration: underline;
+  }
+
+/* Author with Avatar */
+.author-with-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Chat Button in Profile Header */
+.author-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.author-avatar-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+  
+  /* Chat Button in Profile Header */
 .chat-btn-header {
   display: flex;
   align-items: center;
