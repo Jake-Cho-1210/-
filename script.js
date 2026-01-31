@@ -10,7 +10,7 @@ const posts = [
     author: "Taylor Swift",
     authorNationality: "US",
     createdAt: Date.now() - 2 * 60 * 60 * 1000,
-    votes: 342,
+    likes: 342,
     comments: 47,
     language: "English"
   },
@@ -23,7 +23,7 @@ const posts = [
     author: "MountainHiker",
     authorNationality: "DE",
     createdAt: Date.now() - 5 * 60 * 60 * 1000,
-    votes: 256,
+    likes: 256,
     comments: 32,
     image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80",
     activityType: "Hiking"
@@ -37,7 +37,7 @@ const posts = [
     author: "DigitalNomadKR",
     authorNationality: "GB",
     createdAt: Date.now() - 8 * 60 * 60 * 1000,
-    votes: 189,
+    likes: 189,
     comments: 28
   },
   {
@@ -49,7 +49,7 @@ const posts = [
     author: "KoreaWanderer",
     authorNationality: "FR",
     createdAt: Date.now() - 12 * 60 * 60 * 1000,
-    votes: 421,
+    likes: 421,
     comments: 56,
     image: "https://images.unsplash.com/photo-1590559899731-a382839e5549?w=800&q=80"
   },
@@ -62,7 +62,7 @@ const posts = [
     author: "FoodieSeoul",
     authorNationality: "CA",
     createdAt: Date.now() - 24 * 60 * 60 * 1000,
-    votes: 534,
+    likes: 534,
     comments: 72,
     image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800&q=80"
   },
@@ -75,7 +75,7 @@ const posts = [
     author: "LanguageLearner",
     authorNationality: "US",
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    votes: 287,
+    likes: 287,
     comments: 41
   },
   {
@@ -87,7 +87,7 @@ const posts = [
     author: "HistoryBuff",
     authorNationality: "GB",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    votes: 167,
+    likes: 167,
     comments: 23,
     language: "English"
   },
@@ -100,7 +100,7 @@ const posts = [
     author: "GangnamResident",
     authorNationality: "US",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    votes: 45,
+    likes: 45,
     comments: 18
   },
   {
@@ -112,7 +112,7 @@ const posts = [
     author: "KoreanBasics",
     authorNationality: "CA",
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    votes: 612,
+    likes: 612,
     comments: 89,
     language: "English"
   },
@@ -125,7 +125,7 @@ const posts = [
     author: "SpringWatcher",
     authorNationality: "JP",
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    votes: 723,
+    likes: 723,
     comments: 94,
     image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80",
     activityType: "Party"
@@ -139,7 +139,7 @@ const posts = [
     author: "HousingHelper",
     authorNationality: "AU",
     createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-    votes: 234,
+    likes: 234,
     comments: 45
   },
   {
@@ -151,7 +151,7 @@ const posts = [
     author: "SeafoodFan",
     authorNationality: "NL",
     createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-    votes: 389,
+    likes: 389,
     comments: 52
   },
   {
@@ -163,7 +163,7 @@ const posts = [
     author: "SeoulFrancais",
     authorNationality: "FR",
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    votes: 156,
+    likes: 156,
     comments: 23,
     language: "Français"
   },
@@ -176,7 +176,7 @@ const posts = [
     author: "KoreanBasicsFR",
     authorNationality: "FR",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    votes: 134,
+    likes: 134,
     comments: 19,
     language: "Français"
   },
@@ -189,7 +189,7 @@ const posts = [
     author: "SeoulDeutsch",
     authorNationality: "DE",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    votes: 98,
+    likes: 98,
     comments: 14,
     language: "Deutsch"
   },
@@ -202,7 +202,7 @@ const posts = [
     author: "KoreanBasicsDE",
     authorNationality: "DE",
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    votes: 87,
+    likes: 87,
     comments: 11,
     language: "Deutsch"
   },
@@ -215,7 +215,7 @@ const posts = [
     author: "SeoulRussian",
     authorNationality: "RU",
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    votes: 87,
+    likes: 87,
     comments: 11,
     language: "Русский"
   },
@@ -228,7 +228,7 @@ const posts = [
     author: "KoreanBasicsRU",
     authorNationality: "RU",
     createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-    votes: 76,
+    likes: 76,
     comments: 9,
     language: "Русский"
   },
@@ -241,7 +241,7 @@ const posts = [
     author: "HistoireFR",
     authorNationality: "FR",
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    votes: 78,
+    likes: 78,
     comments: 12,
     language: "Français"
   },
@@ -254,7 +254,7 @@ const posts = [
     author: "AudioGuideFR",
     authorNationality: "BE",
     createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-    votes: 65,
+    likes: 65,
     comments: 8,
     language: "Français"
   },
@@ -267,7 +267,7 @@ const posts = [
     author: "GeschichteDE",
     authorNationality: "AT",
     createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-    votes: 65,
+    likes: 65,
     comments: 8,
     language: "Deutsch"
   },
@@ -280,7 +280,7 @@ const posts = [
     author: "AudioGuideDE",
     authorNationality: "CH",
     createdAt: Date.now() - 6 * 24 * 60 * 60 * 1000,
-    votes: 54,
+    likes: 54,
     comments: 6,
     language: "Deutsch"
   },
@@ -293,7 +293,7 @@ const posts = [
     author: "IstoriyaRU",
     authorNationality: "RU",
     createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-    votes: 54,
+    likes: 54,
     comments: 6,
     language: "Русский"
   },
@@ -306,7 +306,7 @@ const posts = [
     author: "AudioGuideRU",
     authorNationality: "RU",
     createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
-    votes: 43,
+    likes: 43,
     comments: 5,
     language: "Русский"
   },
@@ -319,7 +319,7 @@ const posts = [
     author: "SeoulGuides",
     authorNationality: "US",
     createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    votes: 145,
+    likes: 145,
     comments: 19,
     language: "English"
   },
@@ -332,7 +332,7 @@ const posts = [
     author: "SeoulRunners",
     authorNationality: "IE",
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    votes: 189,
+    likes: 189,
     comments: 34,
     activityType: "Running"
   },
@@ -345,7 +345,7 @@ const posts = [
     author: "BikeKorea",
     authorNationality: "NL",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    votes: 156,
+    likes: 156,
     comments: 28,
     activityType: "Biking"
   },
@@ -358,7 +358,7 @@ const posts = [
     author: "FestivalFinder",
     authorNationality: "ES",
     createdAt: Date.now() - 6 * 60 * 60 * 1000,
-    votes: 445,
+    likes: 445,
     comments: 67,
     image: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?w=800&q=80"
   },
@@ -371,7 +371,7 @@ const posts = [
     author: "FilmBuff",
     authorNationality: "IT",
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    votes: 312,
+    likes: 312,
     comments: 45
   },
   {
@@ -383,7 +383,7 @@ const posts = [
     author: "SeoulYogi",
     authorNationality: "SE",
     createdAt: Date.now() - 4 * 60 * 60 * 1000,
-    votes: 98,
+    likes: 98,
     comments: 15,
     activityType: "etc"
   },
@@ -397,7 +397,7 @@ const posts = [
     author: "KdramaFan",
     authorNationality: "US",
     createdAt: Date.now() - 3 * 60 * 60 * 1000,
-    votes: 45,
+    likes: 45,
     comments: 23,
     topic: "question"
   },
@@ -410,7 +410,7 @@ const posts = [
     author: "LonelyExpat",
     authorNationality: "GB",
     createdAt: Date.now() - 8 * 60 * 60 * 1000,
-    votes: 89,
+    likes: 89,
     comments: 41,
     topic: "advice"
   },
@@ -423,7 +423,7 @@ const posts = [
     author: "HealthCurious",
     authorNationality: "US",
     createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    votes: 156,
+    likes: 156,
     comments: 67,
     topic: "discussion"
   },
@@ -436,7 +436,7 @@ const posts = [
     author: "NewbieInKorea",
     authorNationality: "CA",
     createdAt: Date.now() - 5 * 60 * 60 * 1000,
-    votes: 34,
+    likes: 34,
     comments: 18,
     topic: "help"
   },
@@ -449,7 +449,7 @@ const posts = [
     author: "ControversialTakes",
     authorNationality: "AU",
     createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    votes: 234,
+    likes: 234,
     comments: 89,
     topic: "discussion"
   }
@@ -1788,12 +1788,12 @@ function handleMyPageSave(e) {
   }, 1500);
 }
 
-// Format vote count
-function formatVotes(votes) {
-  if (votes >= 1000) {
-    return (votes / 1000).toFixed(1) + 'k';
+// Format likes count
+function formatLikes(likes) {
+  if (likes >= 1000) {
+    return (likes / 1000).toFixed(1) + 'k';
   }
-  return votes.toString();
+  return likes.toString();
 }
 
 // Format timestamp for comments
@@ -1931,7 +1931,7 @@ function openPostDetail(postId) {
                 <path d="M12 4l-8 8h5v8h6v-8h5z"/>
               </svg>
             </button>
-            <span class="vote-count" id="detailVoteCount">${formatVotes(voteState.voteCount)}</span>
+            <span class="vote-count" id="detailVoteCount">${formatLikes(voteState.voteCount)}</span>
             <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" data-post-id="${post.id}" aria-label="Downvote">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
@@ -2176,7 +2176,7 @@ function handleDetailVote(postId, direction) {
   
   upvoteBtn.classList.toggle('active', newUserVote === 1);
   downvoteBtn.classList.toggle('active', newUserVote === -1);
-  voteCountEl.textContent = formatVotes(newVoteCount);
+  voteCountEl.textContent = formatLikes(newVoteCount);
 }
 
 // Handle comment submit
@@ -2232,7 +2232,7 @@ function createPostCard(post) {
             <path d="M12 4l-8 8h5v8h6v-8h5z"/>
           </svg>
         </button>
-        <span class="vote-count">${formatVotes(voteState.voteCount)}</span>
+        <span class="vote-count">${formatLikes(voteState.voteCount)}</span>
         <button class="vote-btn downvote ${voteState.userVote === -1 ? 'active' : ''}" aria-label="Downvote">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 20l8-8h-5v-8h-6v8h-5z"/>
@@ -2347,17 +2347,17 @@ function getFilteredPosts() {
   if (!languageFilterCategories.includes(currentCategory)) {
     switch (currentSort) {
       case 'hot':
-        filtered.sort((a, b) => (b.votes + b.comments * 2) - (a.votes + a.comments * 2));
+        filtered.sort((a, b) => ((b.likes || 0) + b.comments * 2) - ((a.likes || 0) + a.comments * 2));
         break;
       case 'new':
-        filtered.sort((a, b) => b.id - a.id);
+        filtered.sort((a, b) => b.createdAt - a.createdAt);
         break;
       case 'top':
-        filtered.sort((a, b) => b.votes - a.votes);
+        filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
         break;
     }
   } else {
-    filtered.sort((a, b) => b.votes - a.votes);
+    filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
   }
 
   return filtered;
@@ -2766,7 +2766,7 @@ function createNewPost(title, content, topic, imageUrl) {
   author: currentUser.nickname || currentUser.name,
   authorNationality: currentUser.nationality,
   createdAt: Date.now(),
-  votes: 0,
+  likes: 0,
   likes: 0,
   comments: 0,
   topic: topic,
