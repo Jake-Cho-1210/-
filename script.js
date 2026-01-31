@@ -1027,26 +1027,33 @@ function renderProfileTabContent(tab, postsSort = 'new') {
 }
 
 // Avatar crop state
+// All coordinates are normalized to the image's natural size for consistency
+// between preview (CSS transform) and final render (canvas).
 let cropImageSrc = null;
-let cropScale = 1;
-let cropOffsetX = 0;
-let cropOffsetY = 0;
+let cropScale = 1;       // Zoom level (1 = 100%)
+let cropOffsetX = 0;     // Horizontal pan in pixels (at current scale)
+let cropOffsetY = 0;     // Vertical pan in pixels (at current scale)
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
+let baseImageWidth = 0;  // Image display width at scale=1
+let baseImageHeight = 0; // Image display height at scale=1
+
+// Constants for crop UI - must match CSS values
+const CROP_AREA_SIZE = 250;
+const CROP_CIRCLE_SIZE = 200;
+const OUTPUT_SIZE = 200;
 
 // Handle avatar file upload - now opens crop modal
 function handleAvatarUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   
-  // Validate file type
   if (!file.type.startsWith('image/')) {
   alert('Please select an image file.');
   return;
   }
   
-  // Validate file size (max 5MB for cropping, final will be smaller)
   const MAX_SIZE = 5 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
   alert('Image size must be less than 5MB.');
@@ -1080,6 +1087,9 @@ function openAvatarCropModal() {
   
   cropImage.src = cropImageSrc;
   cropImage.onload = function() {
+  // Store base dimensions (image size that fits in crop area at scale=1)
+  baseImageWidth = cropImage.offsetWidth;
+  baseImageHeight = cropImage.offsetHeight;
   updateCropTransform();
   };
   
@@ -1092,12 +1102,12 @@ function closeAvatarCropModal() {
   const modal = document.getElementById('avatarCropModal');
   modal.style.display = 'none';
   cropImageSrc = null;
-  // Reset the file input so the same file can be selected again
   const avatarFileInput = document.getElementById('avatarFileInput');
   if (avatarFileInput) avatarFileInput.value = '';
 }
 
-// Update crop image transform
+// Update crop image transform - applies pan and zoom
+// Transform origin is center, so translation happens after scaling
 function updateCropTransform() {
   const wrapper = document.getElementById('cropImageWrapper');
   if (wrapper) {
@@ -1110,13 +1120,11 @@ function setupCropInteractions() {
   const cropArea = document.getElementById('cropArea');
   const zoomSlider = document.getElementById('zoomSlider');
   
-  // Zoom slider
   zoomSlider.oninput = function() {
   cropScale = this.value / 100;
   updateCropTransform();
   };
   
-  // Mouse drag
   cropArea.onmousedown = function(e) {
   e.preventDefault();
   isDragging = true;
@@ -1137,7 +1145,6 @@ function setupCropInteractions() {
   if (cropArea) cropArea.style.cursor = 'grab';
   };
   
-  // Touch drag for mobile
   cropArea.ontouchstart = function(e) {
   if (e.touches.length === 1) {
   isDragging = true;
@@ -1159,72 +1166,78 @@ function setupCropInteractions() {
   };
 }
 
+/**
+ * Calculates the crop rectangle in natural image coordinates.
+ * This function is the single source of truth for crop math,
+ * ensuring preview and final output match exactly.
+ * 
+ * Coordinate system:
+ * - The crop area is CROP_AREA_SIZE x CROP_AREA_SIZE pixels
+ * - The crop circle (visible area) is CROP_CIRCLE_SIZE x CROP_CIRCLE_SIZE, centered
+ * - The image wrapper is centered in the crop area with transform-origin: center
+ * - Translation (cropOffsetX, cropOffsetY) moves the scaled image
+ * - We need to find which part of the natural image falls inside the circle
+ */
+function getCropRect(naturalWidth, naturalHeight) {
+  // Ratio from displayed size to natural size
+  const scaleToNatural = naturalWidth / baseImageWidth;
+  
+  // The circle center in crop area coords is always the center
+  const circleCenterX = CROP_AREA_SIZE / 2;
+  const circleCenterY = CROP_AREA_SIZE / 2;
+  
+  // Image center in crop area coords (before transform) is also the center
+  // After transform: imageCenter = cropAreaCenter + offset (since transform-origin is center)
+  // So the circle center relative to the transformed image center is: -offset
+  // In the image's local coords (before scale): -offset / scale
+  // Then convert to image pixel coords (where image center is at baseImageWidth/2, baseImageHeight/2)
+  
+  const imgCenterToCircleCenterX = -cropOffsetX / cropScale;
+  const imgCenterToCircleCenterY = -cropOffsetY / cropScale;
+  
+  // Circle center in base image coords (image coords at scale=1)
+  const circleCenterInImgX = baseImageWidth / 2 + imgCenterToCircleCenterX;
+  const circleCenterInImgY = baseImageHeight / 2 + imgCenterToCircleCenterY;
+  
+  // Circle size in base image coords
+  const circleSizeInImg = CROP_CIRCLE_SIZE / cropScale;
+  
+  // Crop rect in base image coords
+  const cropX = circleCenterInImgX - circleSizeInImg / 2;
+  const cropY = circleCenterInImgY - circleSizeInImg / 2;
+  const cropW = circleSizeInImg;
+  const cropH = circleSizeInImg;
+  
+  // Convert to natural image coords
+  return {
+  x: cropX * scaleToNatural,
+  y: cropY * scaleToNatural,
+  w: cropW * scaleToNatural,
+  h: cropH * scaleToNatural
+  };
+}
+
 // Apply the crop and save
 function applyAvatarCrop() {
   const cropImage = document.getElementById('cropImage');
-  const cropArea = document.getElementById('cropArea');
-  
-  // Output size for the cropped avatar
-  const outputSize = 200;
-  const cropAreaSize = 250; // Must match CSS .crop-area width/height
-  const circleSize = 200;   // Must match CSS .crop-circle-overlay width/height
   
   // Create canvas
   const canvas = document.createElement('canvas');
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  canvas.width = OUTPUT_SIZE;
+  canvas.height = OUTPUT_SIZE;
   const ctx = canvas.getContext('2d');
   
-  // Get image natural dimensions
-  const natW = cropImage.naturalWidth;
-  const natH = cropImage.naturalHeight;
-  
-  // Displayed image size (fits within crop area, then scaled)
-  const dispW = cropImage.offsetWidth;
-  const dispH = cropImage.offsetHeight;
-  
-  // Ratio from displayed to natural
-  const ratioX = natW / dispW;
-  const ratioY = natH / dispH;
-  
-  // The crop circle is centered in the crop area
-  // Circle center in crop area coordinates = (cropAreaSize/2, cropAreaSize/2)
-  // The image wrapper is translated by (cropOffsetX, cropOffsetY) and scaled by cropScale
-  // We need to find what part of the NATURAL image is visible in the circle
-  
-  // Center of circle in wrapper-local coordinates (before transform)
-  const circleCenterInWrapper_X = (cropAreaSize / 2 - cropOffsetX) / cropScale;
-  const circleCenterInWrapper_Y = (cropAreaSize / 2 - cropOffsetY) / cropScale;
-  
-  // The wrapper centers the image, so image top-left in wrapper is at:
-  const imgLeftInWrapper = (cropAreaSize - dispW) / 2;
-  const imgTopInWrapper = (cropAreaSize - dispH) / 2;
-  
-  // Circle center in displayed image coordinates
-  const circleCenterInImg_X = circleCenterInWrapper_X - imgLeftInWrapper;
-  const circleCenterInImg_Y = circleCenterInWrapper_Y - imgTopInWrapper;
-  
-  // Size of circle in displayed image coordinates
-  const circleSizeInDisp = circleSize / cropScale;
-  
-  // Source rectangle in displayed image coordinates
-  const srcDispX = circleCenterInImg_X - circleSizeInDisp / 2;
-  const srcDispY = circleCenterInImg_Y - circleSizeInDisp / 2;
-  
-  // Convert to natural image coordinates
-  const srcX = srcDispX * ratioX;
-  const srcY = srcDispY * ratioY;
-  const srcW = circleSizeInDisp * ratioX;
-  const srcH = circleSizeInDisp * ratioY;
+  // Get crop rectangle using shared function
+  const crop = getCropRect(cropImage.naturalWidth, cropImage.naturalHeight);
   
   // Draw circular clip
   ctx.beginPath();
-  ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
+  ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
   ctx.closePath();
   ctx.clip();
   
-  // Draw the cropped portion
-  ctx.drawImage(cropImage, srcX, srcY, srcW, srcH, 0, 0, outputSize, outputSize);
+  // Draw the cropped portion - this matches exactly what's visible in the preview circle
+  ctx.drawImage(cropImage, crop.x, crop.y, crop.w, crop.h, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
   
   // Convert to base64
   const croppedImage = canvas.toDataURL('image/jpeg', 0.9);
@@ -1257,9 +1270,6 @@ function applyAvatarCrop() {
   
   // Close modal
   closeAvatarCropModal();
-  
-  // TODO: When backend API is available, upload cropped file to server
-  // Example: await fetch('/api/upload-avatar', { method: 'POST', body: formData });
 }
 
 // State for viewing other users
