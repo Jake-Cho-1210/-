@@ -820,6 +820,160 @@ function openMyPage(skipHistory = false) {
 // Active profile tab state
 let activeProfileTab = 'edit';
 
+// Render My Page view with tabs
+function renderMyPageView(tab = 'edit', postsSort = 'new') {
+  if (!currentUser) return;
+  
+  activeProfileTab = tab;
+  const flag = getFlagEmoji(currentUser.nationality || 'US');
+  
+  // Build avatar HTML
+  let avatarHTML;
+  if (currentUser.profileImage) {
+    avatarHTML = `<img src="${currentUser.profileImage}" alt="Profile" class="profile-avatar-img">`;
+  } else {
+    avatarHTML = `
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>`;
+  }
+  
+  postsContainer.innerHTML = `
+    <div class="my-page-view">
+      <button class="back-btn" id="profileBackBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Back
+      </button>
+      
+      <div class="profile-header-row">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar-large" id="profileAvatarLarge">
+            ${avatarHTML}
+          </div>
+          <label class="avatar-edit-btn" for="avatarUpload" title="Change avatar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </label>
+          <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+          ${currentUser.profileImage ? `<button class="avatar-remove-btn" id="removeAvatarBtn" title="Remove avatar">&times;</button>` : ''}
+        </div>
+        <div class="profile-info">
+          <span class="profile-display-name">${flag} ${currentUser.nickname || currentUser.name}</span>
+          <div class="profile-stats-inline">
+            <span class="profile-stat-item"><strong>0</strong> Following</span>
+            <span class="profile-stat-item"><strong>0</strong> Followers</span>
+          </div>
+        </div>
+        <button class="logout-btn-header" id="logoutBtnHeader">Logout</button>
+      </div>
+      
+      <div class="profile-tabs">
+        <button class="profile-tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">Edit Profile</button>
+        <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
+        <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
+        <button class="profile-tab ${tab === 'saved' ? 'active' : ''}" data-tab="saved">Saved</button>
+      </div>
+      
+      <div class="profile-tab-content" id="profileTabContent">
+        ${renderProfileTabContent(tab, postsSort)}
+      </div>
+    </div>
+  `;
+  
+  // Setup event handlers
+  document.getElementById('profileBackBtn').addEventListener('click', closeMyPage);
+  
+  // Logout button handler
+  document.getElementById('logoutBtnHeader')?.addEventListener('click', () => {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    updateAuthUI();
+    closeMyPage();
+    showToast('Logged out successfully');
+  });
+  
+  // Avatar upload handler
+  document.getElementById('avatarUpload')?.addEventListener('change', handleAvatarUpload);
+  
+  // Remove avatar button handler
+  document.getElementById('removeAvatarBtn')?.addEventListener('click', removeAvatar);
+  
+  // Tab switching
+  document.querySelectorAll('.profile-tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      renderMyPageView(tabBtn.dataset.tab);
+    });
+  });
+  
+// Tab-specific event handlers
+  if (tab === 'edit') {
+  const editForm = document.getElementById('editProfileForm');
+  if (editForm) {
+  editForm.addEventListener('submit', handleMyPageSave);
+  }
+  }
+  
+  if (tab === 'comments') {
+    // Comments tab sorting
+    document.querySelectorAll('.comments-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sort = btn.dataset.sort;
+        renderMyPageView('comments', sort);
+      });
+    });
+    // Comment like buttons
+    document.querySelectorAll('.comment-like-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleCommentLikeClick(btn);
+      });
+    });
+    // Click to view post
+    document.querySelectorAll('.my-comment-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        openPostDetail(postId);
+      });
+    });
+  }
+  
+  if (tab === 'posts') {
+    // Posts tab sorting
+    document.querySelectorAll('.posts-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sort = btn.dataset.sort;
+        renderMyPageView('posts', sort);
+      });
+    });
+    // Click to view post
+    document.querySelectorAll('.my-post-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        openPostDetail(postId);
+      });
+    });
+  }
+  
+  if (tab === 'saved') {
+    // Click to view saved post
+    document.querySelectorAll('.my-post-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        openPostDetail(postId);
+      });
+    });
+  }
+}
+
 // Render content for profile tabs
 function renderProfileTabContent(tab, postsSort = 'new') {
   if (tab === 'edit') {
@@ -1056,19 +1210,24 @@ function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
         Back
       </button>
       
-      <div class="profile-header-row">
-        <div class="profile-avatar-wrapper">
-          <div class="profile-avatar-large">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-        </div>
-        <div class="profile-info">
-          <span class="profile-display-name">${flag} ${viewingUser.nickname}</span>
-        </div>
-      </div>
+<div class="profile-header-row">
+  <div class="profile-avatar-wrapper">
+  <div class="profile-avatar-large">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+  <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+  </div>
+  </div>
+  <div class="profile-info">
+  <span class="profile-display-name">${flag} ${viewingUser.nickname}</span>
+  <div class="profile-stats-inline">
+    <span class="profile-stat-item"><strong>0</strong> Following</span>
+    <span class="profile-stat-item"><strong>0</strong> Followers</span>
+  </div>
+  </div>
+  <button class="logout-btn-header chat-btn" id="chatWithUserBtn">Chat</button>
+  </div>
       
       <div class="profile-tabs">
         <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
@@ -1082,6 +1241,13 @@ function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
   `;
   
   document.getElementById('backFromUserProfile').addEventListener('click', closeUserProfile);
+  
+  // Chat button handler - TODO: Implement chat functionality with backend
+  document.getElementById('chatWithUserBtn')?.addEventListener('click', () => {
+    showToast('Chat feature coming soon!');
+    // TODO: Navigate to chat route when implemented
+    // window.location.href = `/chat/${viewingUser.nickname}`;
+  });
   
   document.querySelectorAll('.profile-tab').forEach(tabBtn => {
     tabBtn.addEventListener('click', () => {
@@ -1099,49 +1265,6 @@ function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
       });
     });
 document.querySelectorAll('.my-post-item').forEach(item => {
-  item.addEventListener('click', () => {
-  const postId = parseInt(item.dataset.postId);
-  openPostDetail(postId);
-  });
-  });
-  }
-  if (tab === 'comments') {
-  // Comments tab sorting
-  document.querySelectorAll('.comments-sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const sort = btn.dataset.sort;
-      renderMyPageView('comments', sort);
-    });
-  });
-  // Comment like buttons
-  document.querySelectorAll('.comment-like-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleCommentLikeClick(btn);
-    });
-  });
-  // Click to view post
-document.querySelectorAll('.my-comment-item').forEach(item => {
-  item.addEventListener('click', () => {
-  const postId = parseInt(item.dataset.postId);
-  openPostDetail(postId);
-  });
-  });
-  }
-  if (tab === 'posts') {
-  // Posts tab sorting
-    document.querySelectorAll('.posts-sort-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sort = btn.dataset.sort;
-        renderMyPageView('posts', sort);
-      });
-    });
-// Click to view post
-  document.querySelectorAll('.my-post-item').forEach(item => {
   item.addEventListener('click', () => {
   const postId = parseInt(item.dataset.postId);
   openPostDetail(postId);
