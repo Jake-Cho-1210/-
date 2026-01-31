@@ -2369,27 +2369,32 @@ return `
   <h3 class="post-title">${post.title}</h3>
         ${imageHTML}
         <p class="post-preview">${post.content}</p>
-        <div class="post-actions">
-          <button class="action-btn like-btn ${likeState.liked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like">
-            <svg viewBox="0 0 24 24" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            <span class="like-count">${likeState.count}</span>
-          </button>
-          <button class="action-btn comments-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-            ${getComments(post.id).length || post.comments} Comments
-          </button>
-          <span class="action-btn view-count-display" aria-label="Views">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            ${viewCount}
-          </span>
-        </div>
+<div class="post-actions">
+  <button class="action-btn like-btn ${likeState.liked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like">
+  <svg viewBox="0 0 24 24" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+  <span class="like-count">${likeState.count}</span>
+  </button>
+  <button class="action-btn comments-btn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+  ${getComments(post.id).length || post.comments} Comments
+  </button>
+  <button class="action-btn save-btn ${isPostSaved(post.id) ? 'saved' : ''}" data-post-id="${post.id}" aria-label="Save">
+  <svg viewBox="0 0 24 24" fill="${isPostSaved(post.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+  </svg>
+  </button>
+  <span class="action-btn view-count-display" aria-label="Views">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+  <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+  ${viewCount}
+  </span>
+  </div>
       </div>
     </article>
   `;
@@ -2426,29 +2431,27 @@ function getFilteredPosts() {
     );
   }
 
-  if (!languageFilterCategories.includes(currentCategory)) {
-    switch (currentSort) {
-      case 'hot':
-        filtered.sort((a, b) => ((b.likes || 0) + b.comments * 2) - ((a.likes || 0) + a.comments * 2));
-        break;
-      case 'new':
-        filtered.sort((a, b) => b.createdAt - a.createdAt);
-        break;
-      case 'top':
-        filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-        break;
-    }
-  } else {
-    filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+// Apply sorting for all categories
+  switch (currentSort) {
+  case 'hot':
+  filtered.sort((a, b) => ((b.likes || 0) + b.comments * 2) - ((a.likes || 0) + a.comments * 2));
+  break;
+  case 'new':
+  filtered.sort((a, b) => b.createdAt - a.createdAt);
+  break;
+  case 'top':
+  filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  break;
   }
 
   return filtered;
 }
 
 // Update feed tabs visibility based on category
-function updateFeedTabs() {
+  function updateFeedTabs() {
   if (languageFilterCategories.includes(currentCategory)) {
-  feedSort.style.display = 'none';
+  // Show both Hot/New/Top and Language tabs for Korean Starter Pack and Audio Guides
+  feedSort.style.display = 'flex';
   feedLanguageTabs.style.display = 'flex';
   feedActivityTabs.style.display = 'none';
   feedTopicTabs.style.display = 'none';
@@ -2492,16 +2495,21 @@ postsContainer.innerHTML = filtered.map(createPostCard).join('');
   
   // Add like button listeners
   document.querySelectorAll('.post-card .like-btn').forEach(btn => {
-    btn.addEventListener('click', handleLikeClick);
+  btn.addEventListener('click', handleLikeClick);
   });
-
+  
+  // Add save button listeners
+  document.querySelectorAll('.post-card .save-btn').forEach(btn => {
+  btn.addEventListener('click', handleSaveClick);
+  });
+  
   // Add comments button listeners - clicking comment count opens detail
   document.querySelectorAll('.post-card .comments-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const postId = parseInt(btn.closest('.post-card').dataset.postId);
-      openPostDetail(postId);
-    });
+  btn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const postId = parseInt(btn.closest('.post-card').dataset.postId);
+  openPostDetail(postId);
+  });
   });
 
   // Add clickable author handlers
@@ -2524,8 +2532,8 @@ postsContainer.innerHTML = filtered.map(createPostCard).join('');
   const postId = parseInt(card.dataset.postId);
   
   card.addEventListener('click', (e) => {
-  // Block like buttons, author clicks, and kebab menu
-  if (e.target.closest('.like-btn') || e.target.closest('.clickable-author') || e.target.closest('.kebab-menu-container')) {
+  // Block like buttons, save buttons, author clicks, and kebab menu
+  if (e.target.closest('.like-btn') || e.target.closest('.save-btn') || e.target.closest('.clickable-author') || e.target.closest('.kebab-menu-container')) {
   return;
   }
   openPostDetail(postId);
@@ -2573,6 +2581,22 @@ function handleLikeClick(e) {
   const svg = btn.querySelector('svg');
   svg.setAttribute('fill', newState.liked ? 'currentColor' : 'none');
   btn.querySelector('.like-count').textContent = newState.count;
+}
+
+// Handle save button clicks
+function handleSaveClick(e) {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const postId = parseInt(btn.dataset.postId);
+  const isSaved = toggleSavePost(postId);
+  if (isSaved === false && !currentUser) return; // User not logged in
+  
+  // Update UI
+  btn.classList.toggle('saved', isSaved);
+  const svg = btn.querySelector('svg');
+  svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
+  
+  showToast(isSaved ? 'Post saved' : 'Post unsaved');
 }
 
 // Handle category selection
