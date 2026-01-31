@@ -199,6 +199,58 @@
     </div>
   </div>
 
+  <!-- Create Post Modal -->
+  <div class="modal-overlay" id="createPostModal" style="display: none;">
+    <div class="modal create-post-modal">
+      <button class="modal-close" id="closeCreatePostModal" aria-label="Close">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <h2 class="modal-title">Create Post</h2>
+      <form id="createPostForm">
+        <div class="form-group">
+          <label for="postTitleInput">Title <span class="required">*</span></label>
+          <input type="text" id="postTitleInput" placeholder="Enter post title" required maxlength="200">
+        </div>
+        <div class="form-group">
+          <label for="postTopicSelect">Topic <span class="required">*</span></label>
+          <select id="postTopicSelect" required>
+            <option value="">Select a topic</option>
+            <option value="advice">Advice</option>
+            <option value="discussion">Discussion</option>
+            <option value="question">Question</option>
+            <option value="help">Help</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="postContentInput">Content <span class="required">*</span></label>
+          <textarea id="postContentInput" placeholder="Write your post content..." rows="8" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Attach Images (optional)</label>
+          <div class="image-upload-area" id="imageUploadArea">
+            <input type="file" id="postImageInput" accept="image/*" multiple style="display: none;">
+            <button type="button" class="image-upload-btn" id="addImageBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              Add Image
+            </button>
+            <div class="image-previews" id="imagePreviews"></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="form-cancel" id="cancelCreatePost">Cancel</button>
+          <button type="submit" class="form-submit">Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Main Layout -->
   <main class="main-container">
     <!-- Left Sidebar -->
@@ -219,6 +271,14 @@
           <div class="nav-item-content">
             <span class="nav-item-title">All Posts</span>
             <span class="nav-item-desc">View all community posts</span>
+          </div>
+        </div>
+        
+        <!-- Free Board -->
+        <div class="nav-item" data-category="free-board">
+          <div class="nav-item-content">
+            <span class="nav-item-title">Free Board</span>
+            <span class="nav-item-desc">Feel free to chat and communicate</span>
           </div>
         </div>
 
@@ -295,8 +355,17 @@
 
     <!-- Center Column - Post Feed -->
     <section class="center-feed">
-      <div class="feed-header">
-        <h2 id="feedTitle">All Posts</h2>
+      <div class="feed-header" id="feedHeader">
+        <div class="feed-title-row">
+          <h2 id="feedTitle">All Posts</h2>
+          <button class="create-post-btn" id="createPostBtn" style="display: none;" title="Create post">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Create</span>
+          </button>
+        </div>
         <div class="feed-tabs">
           <div class="feed-sort" id="feedSort">
             <button class="sort-btn active" data-sort="hot">Hot</button>
@@ -315,6 +384,13 @@
             <button class="activity-tab" data-activity="Hiking">Hiking</button>
             <button class="activity-tab" data-activity="Biking">Biking</button>
             <button class="activity-tab" data-activity="etc">etc</button>
+          </div>
+          <div class="feed-topic-tabs" id="feedTopicTabs" style="display: none;">
+            <button class="topic-tab active" data-topic="all">All</button>
+            <button class="topic-tab" data-topic="advice">Advice</button>
+            <button class="topic-tab" data-topic="discussion">Discussion</button>
+            <button class="topic-tab" data-topic="question">Question</button>
+            <button class="topic-tab" data-topic="help">Help</button>
           </div>
         </div>
       </div>

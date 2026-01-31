@@ -386,6 +386,72 @@ const posts = [
     votes: 98,
     comments: 15,
     activityType: "etc"
+  },
+  // Free Board Posts
+  {
+    id: 31,
+    title: "Best Korean drama recommendations for learning Korean?",
+    content: "I've been trying to improve my Korean listening skills by watching K-dramas. Can anyone recommend some good ones that have clear dialogue and aren't too fast? I'm at intermediate level. Thanks in advance!",
+    category: "free-board",
+    categoryLabel: "Free Board",
+    author: "KdramaFan",
+    authorNationality: "US",
+    createdAt: Date.now() - 3 * 60 * 60 * 1000,
+    votes: 45,
+    comments: 23,
+    topic: "question"
+  },
+  {
+    id: 32,
+    title: "Tips for making Korean friends as an expat",
+    content: "I've been living in Seoul for 6 months now but finding it hard to make local friends. What worked for you? I've tried language exchanges but most people just want to practice English. Any advice appreciated!",
+    category: "free-board",
+    categoryLabel: "Free Board",
+    author: "LonelyExpat",
+    authorNationality: "GB",
+    createdAt: Date.now() - 8 * 60 * 60 * 1000,
+    votes: 89,
+    comments: 41,
+    topic: "advice"
+  },
+  {
+    id: 33,
+    title: "Is Korean healthcare really that good?",
+    content: "Coming from the US, I keep hearing that Korean healthcare is amazing and affordable. What's been your experience? I need to get a checkup done and wondering if I should do it here or wait until I visit home.",
+    category: "free-board",
+    categoryLabel: "Free Board",
+    author: "HealthCurious",
+    authorNationality: "US",
+    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    votes: 156,
+    comments: 67,
+    topic: "discussion"
+  },
+  {
+    id: 34,
+    title: "Need help with Korean phone plan - confused by options",
+    content: "Just arrived and overwhelmed by all the phone plan options. SKT, KT, LG U+... What's the difference? I need unlimited data and some international calling. Budget is around 50,000 won/month. Please help!",
+    category: "free-board",
+    categoryLabel: "Free Board",
+    author: "NewbieInKorea",
+    authorNationality: "CA",
+    createdAt: Date.now() - 5 * 60 * 60 * 1000,
+    votes: 34,
+    comments: 18,
+    topic: "help"
+  },
+  {
+    id: 35,
+    title: "What's your unpopular opinion about living in Korea?",
+    content: "Let's have a fun discussion! What's something about living in Korea that you feel differently about compared to most expats? I'll start: I actually prefer Korean customer service style over Western 'friendly' service.",
+    category: "free-board",
+    categoryLabel: "Free Board",
+    author: "ControversialTakes",
+    authorNationality: "AU",
+    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    votes: 234,
+    comments: 89,
+    topic: "discussion"
   }
 ];
 
@@ -416,6 +482,7 @@ function refreshTimestamps() {
 // Category name mapping
 const categoryNames = {
   'all': 'All Posts',
+  'free-board': 'Free Board',
   'korea-starter-pack': 'Korea Starter Pack',
   'activities': 'Activities',
   'festival': 'Festival',
@@ -435,6 +502,7 @@ let currentCategory = 'all';
 let currentSort = 'hot';
 let currentLanguage = 'English';
 let currentActivityType = 'Running';
+let currentTopic = 'all';
 let searchQuery = '';
 let currentUser = null;
 let currentPostId = null;
@@ -455,6 +523,10 @@ const feedSort = document.getElementById('feedSort');
 const feedLanguageTabs = document.getElementById('feedLanguageTabs');
 const feedActivityTabs = document.getElementById('feedActivityTabs');
 const activityTabs = document.querySelectorAll('.activity-tab');
+const feedTopicTabs = document.getElementById('feedTopicTabs');
+const topicTabs = document.querySelectorAll('.topic-tab');
+const createPostBtn = document.getElementById('createPostBtn');
+const createPostModal = document.getElementById('createPostModal');
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const leftSidebar = document.getElementById('leftSidebar');
@@ -729,9 +801,16 @@ function renderMyPageView(tab = 'edit') {
       <!-- Profile Header -->
       <div class="profile-header-row">
         <div class="profile-avatar-wrapper">
-          <div class="profile-avatar-large" id="profileAvatarLarge">
+          <div class="profile-avatar-large profile-avatar-clickable" id="profileAvatarLarge" title="Click to change profile picture">
             ${profileImg ? `<img src="${profileImg}" alt="Profile" onerror="this.parentElement.innerHTML='<svg width=\\'48\\' height=\\'48\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
+            <div class="avatar-edit-overlay">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
           </div>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
         </div>
         <div class="profile-info">
           <span class="profile-display-name">${flag} ${currentUser.nickname || currentUser.name}</span>
@@ -771,6 +850,16 @@ function renderMyPageView(tab = 'edit') {
   if (tab === 'edit') {
     const form = document.getElementById('editProfileForm');
     if (form) form.addEventListener('submit', handleMyPageSave);
+  }
+  
+  // Avatar click to upload image
+  const avatarEl = document.getElementById('profileAvatarLarge');
+  const avatarFileInput = document.getElementById('avatarFileInput');
+  if (avatarEl && avatarFileInput) {
+    avatarEl.addEventListener('click', () => {
+      avatarFileInput.click();
+    });
+    avatarFileInput.addEventListener('change', handleAvatarUpload);
   }
   
   // Click handlers for saved posts and comments
@@ -841,10 +930,6 @@ function renderProfileTabContent(tab) {
             <option value="other" ${currentUser.gender === 'other' ? 'selected' : ''}>Other</option>
           </select>
         </div>
-        <div class="form-group">
-          <label for="profileImageInput">Profile Image URL</label>
-          <input type="url" id="profileImageInput" value="${currentUser.profileImage || ''}" placeholder="Enter image URL">
-        </div>
         <button type="submit" class="form-submit">Save changes</button>
       </form>
     `;
@@ -881,6 +966,66 @@ function renderProfileTabContent(tab) {
     `;
   }
   return '';
+}
+
+// Handle avatar file upload
+function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.');
+    return;
+  }
+  
+  // Validate file size (max 2MB)
+  const MAX_SIZE = 2 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    alert('Image size must be less than 2MB.');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const base64Image = event.target.result;
+    
+    // Update currentUser profile image
+    currentUser.profileImage = base64Image;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Update avatar display immediately
+    const avatarEl = document.getElementById('profileAvatarLarge');
+    if (avatarEl) {
+      const imgEl = avatarEl.querySelector('img');
+      if (imgEl) {
+        imgEl.src = base64Image;
+      } else {
+        // Create new img element
+        avatarEl.innerHTML = `
+          <img src="${base64Image}" alt="Profile">
+          <div class="avatar-edit-overlay">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </div>
+        `;
+      }
+    }
+    
+    // Update navbar profile button
+    renderProfileButton();
+    
+    // TODO: When backend API is available, upload file to server instead of using base64
+    // Example: await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+  };
+  
+  reader.onerror = function() {
+    alert('Failed to read the image file.');
+  };
+  
+  reader.readAsDataURL(file);
 }
 
 // Close My Page and return to feed
@@ -936,8 +1081,7 @@ function handleMyPageSave(e) {
     currentUser.gender = genderSelect.value || null;
   }
   
-  // Profile image
-  currentUser.profileImage = document.getElementById('profileImageInput').value.trim() || null;
+  // Profile image is now handled via avatar upload, not form field
   
   localStorage.setItem('currentUser', JSON.stringify(currentUser));
   updateAuthUI();
@@ -1009,6 +1153,7 @@ function openPostDetail(postId) {
     sort: currentSort,
     language: currentLanguage,
     activityType: currentActivityType,
+    topic: currentTopic,
     search: searchQuery,
     scrollY: window.scrollY,
     anchorPostId: anchorPostId,
@@ -1154,6 +1299,7 @@ function closePostDetail() {
     currentSort = savedFeedState.sort;
     currentLanguage = savedFeedState.language;
     currentActivityType = savedFeedState.activityType;
+    currentTopic = savedFeedState.topic || 'all';
     searchQuery = savedFeedState.search;
     searchInput.value = searchQuery;
     
@@ -1169,7 +1315,12 @@ function closePostDetail() {
     
     // Update language tabs active state
     langTabs.forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.lang === currentLanguage);
+    tab.classList.toggle('active', tab.dataset.lang === currentLanguage);
+    });
+    
+    // Update topic tabs active state
+    topicTabs.forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.topic === currentTopic);
     });
   }
   
@@ -1348,9 +1499,14 @@ function getFilteredPosts() {
 
   // Filter by activity type when viewing activities category
   if (currentCategory === 'activities') {
-    filtered = filtered.filter(post => post.activityType === currentActivityType);
+  filtered = filtered.filter(post => post.activityType === currentActivityType);
   }
-
+  
+  // Filter by topic when viewing free-board category
+  if (currentCategory === 'free-board' && currentTopic !== 'all') {
+  filtered = filtered.filter(post => post.topic === currentTopic);
+  }
+  
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filtered = filtered.filter(post => 
@@ -1382,19 +1538,31 @@ function getFilteredPosts() {
 // Update feed tabs visibility based on category
 function updateFeedTabs() {
   if (languageFilterCategories.includes(currentCategory)) {
-    feedSort.style.display = 'none';
-    feedLanguageTabs.style.display = 'flex';
-    feedActivityTabs.style.display = 'none';
+  feedSort.style.display = 'none';
+  feedLanguageTabs.style.display = 'flex';
+  feedActivityTabs.style.display = 'none';
+  feedTopicTabs.style.display = 'none';
+  createPostBtn.style.display = 'none';
   } else if (currentCategory === 'activities') {
-    feedSort.style.display = 'none';
-    feedLanguageTabs.style.display = 'none';
-    feedActivityTabs.style.display = 'flex';
+  feedSort.style.display = 'none';
+  feedLanguageTabs.style.display = 'none';
+  feedActivityTabs.style.display = 'flex';
+  feedTopicTabs.style.display = 'none';
+  createPostBtn.style.display = 'none';
+  } else if (currentCategory === 'free-board') {
+  feedSort.style.display = 'flex';
+  feedLanguageTabs.style.display = 'none';
+  feedActivityTabs.style.display = 'none';
+  feedTopicTabs.style.display = 'flex';
+  createPostBtn.style.display = currentUser ? 'flex' : 'none';
   } else {
-    feedSort.style.display = 'flex';
-    feedLanguageTabs.style.display = 'none';
-    feedActivityTabs.style.display = 'none';
+  feedSort.style.display = 'flex';
+  feedLanguageTabs.style.display = 'none';
+  feedActivityTabs.style.display = 'none';
+  feedTopicTabs.style.display = 'none';
+  createPostBtn.style.display = 'none';
   }
-}
+  }
 
 // Render posts
 function renderPosts() {
@@ -1501,14 +1669,22 @@ function handleCategoryClick(e) {
 
   currentCategory = category;
   feedTitle.textContent = categoryNames[category];
-
+  
   if (languageFilterCategories.includes(category)) {
-    currentLanguage = 'English';
-    langTabs.forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.lang === 'English');
-    });
+  currentLanguage = 'English';
+  langTabs.forEach(tab => {
+  tab.classList.toggle('active', tab.dataset.lang === 'English');
+  });
   }
-
+  
+  // Reset topic filter when switching to free-board
+  if (category === 'free-board') {
+  currentTopic = 'all';
+  topicTabs.forEach(tab => {
+  tab.classList.toggle('active', tab.dataset.topic === 'all');
+  });
+  }
+  
   updateFeedTabs();
   renderPosts();
   closeMobileSidebar();
@@ -1545,12 +1721,24 @@ function handleActivityTabClick(e) {
 
   activityTabs.forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
-
+  
   currentActivityType = activity;
   renderPosts();
-}
-
-// Handle search
+  }
+  
+  // Handle topic tab selection (Free Board)
+  function handleTopicTabClick(e) {
+  const tab = e.currentTarget;
+  const topic = tab.dataset.topic;
+  
+  topicTabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  
+  currentTopic = topic;
+  renderPosts();
+  }
+  
+  // Handle search
 function handleSearch(e) {
   searchQuery = e.target.value;
   
@@ -1590,11 +1778,15 @@ langTabs.forEach(tab => {
   tab.addEventListener('click', handleLanguageTabClick);
 });
 
-activityTabs.forEach(tab => {
+  activityTabs.forEach(tab => {
   tab.addEventListener('click', handleActivityTabClick);
-});
-
-searchInput.addEventListener('input', handleSearch);
+  });
+  
+  topicTabs.forEach(tab => {
+  tab.addEventListener('click', handleTopicTabClick);
+  });
+  
+  searchInput.addEventListener('input', handleSearch);
 
 mobileMenuBtn.addEventListener('click', openMobileSidebar);
 closeSidebarBtn.addEventListener('click', closeMobileSidebar);
@@ -1632,6 +1824,111 @@ logoLink.addEventListener('click', (e) => {
   window.scrollTo(0, 0);
 });
 
+// Create Post Modal Functions
+function openCreatePostModal() {
+  if (!currentUser) {
+    openAuthModal(false);
+    return;
+  }
+  createPostModal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCreatePostModal() {
+  createPostModal.style.display = 'none';
+  document.body.style.overflow = '';
+  document.getElementById('createPostForm').reset();
+  const imagePreview = document.getElementById('postImagePreview');
+  if (imagePreview) {
+    imagePreview.innerHTML = '';
+    imagePreview.style.display = 'none';
+  }
+}
+
+function handlePostImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.');
+    return;
+  }
+  
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  if (file.size > MAX_SIZE) {
+    alert('Image size must be less than 5MB.');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const imagePreview = document.getElementById('postImagePreview');
+    if (imagePreview) {
+      imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+      imagePreview.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleCreatePost(e) {
+  e.preventDefault();
+  
+  const title = document.getElementById('postTitleInput').value.trim();
+  const content = document.getElementById('postContentInput').value.trim();
+  const topicSelect = document.getElementById('postTopicSelect');
+  const topic = topicSelect ? topicSelect.value : 'question';
+  
+  if (!title || !content) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+  
+  // Get image if uploaded
+  const imageInput = document.getElementById('postImageInput');
+  let imageUrl = null;
+  if (imageInput && imageInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      imageUrl = event.target.result;
+      createNewPost(title, content, topic, imageUrl);
+    };
+    reader.readAsDataURL(imageInput.files[0]);
+  } else {
+    createNewPost(title, content, topic, null);
+  }
+}
+
+function createNewPost(title, content, topic, imageUrl) {
+  const newPost = {
+    id: Date.now(),
+    title: title,
+    content: content,
+    category: 'free-board',
+    categoryLabel: 'Free Board',
+    author: currentUser.nickname || currentUser.name,
+    authorNationality: currentUser.nationality,
+    createdAt: Date.now(),
+    votes: 0,
+    comments: 0,
+    topic: topic,
+    image: imageUrl
+  };
+  
+  posts.unshift(newPost);
+  closeCreatePostModal();
+  
+  // Switch to free-board category and render
+  currentCategory = 'free-board';
+  navItems.forEach(item => {
+    item.classList.toggle('active', item.dataset.category === 'free-board');
+  });
+  feedTitle.textContent = 'Free Board';
+  updateFeedTabs();
+  renderPosts();
+  window.scrollTo(0, 0);
+}
+
 // Profile button event listener
 profileBtn.addEventListener('click', openMyPage);
 
@@ -1649,12 +1946,25 @@ authModalOverlay.addEventListener('click', (e) => {
 authForm.addEventListener('submit', handleAuthSubmit);
 // userMenuBtn removed - using profile button with in-page logout
 
-// Forgot password event listeners
-forgotPasswordBtn.addEventListener('click', showForgotPasswordForm);
-sendResetBtn.addEventListener('click', handleSendResetLink);
-backToLoginBtn.addEventListener('click', backToLogin);
-
-// Click outside handler (user menu removed)
+  // Forgot password event listeners
+  forgotPasswordBtn.addEventListener('click', showForgotPasswordForm);
+  sendResetBtn.addEventListener('click', handleSendResetLink);
+  backToLoginBtn.addEventListener('click', backToLogin);
+  
+  // Create post event listeners
+  createPostBtn.addEventListener('click', openCreatePostModal);
+  document.getElementById('closeCreatePostModal').addEventListener('click', closeCreatePostModal);
+  document.getElementById('cancelCreatePost').addEventListener('click', closeCreatePostModal);
+  createPostModal.addEventListener('click', (e) => {
+  if (e.target === createPostModal) closeCreatePostModal();
+  });
+  document.getElementById('createPostForm').addEventListener('submit', handleCreatePost);
+  document.getElementById('addImageBtn').addEventListener('click', () => {
+  document.getElementById('postImageInput').click();
+  });
+  document.getElementById('postImageInput').addEventListener('change', handlePostImageUpload);
+  
+  // Click outside handler (user menu removed)
 
 // Handle escape key to close modals/sidebars
 document.addEventListener('keydown', (e) => {

@@ -1474,6 +1474,40 @@ body {
   color: var(--color-text-muted);
 }
 
+/* Clickable Avatar for Upload */
+.profile-avatar-clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+.profile-avatar-clickable:hover {
+  opacity: 0.9;
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
+
+.avatar-edit-overlay svg {
+  color: white;
+}
+
+.profile-avatar-clickable:hover .avatar-edit-overlay {
+  opacity: 1;
+}
+
 .profile-info {
   flex: 1;
   min-width: 0;
@@ -1625,4 +1659,200 @@ body {
 
 .required {
   color: #ef4444;
+}
+
+/* Feed Title Row */
+.feed-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Create Post Button */
+.create-post-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s;
+}
+
+.create-post-btn:hover {
+  background: var(--color-primary-hover, #0056b3);
+  transform: translateY(-1px);
+}
+
+.create-post-btn svg {
+  flex-shrink: 0;
+}
+
+/* Topic Tabs */
+.feed-topic-tabs {
+  display: none;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.topic-tab {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.topic-tab:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.topic-tab.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Create Post Modal */
+.create-post-modal {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.create-post-modal .form-group {
+  margin-bottom: 16px;
+}
+
+.create-post-modal textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 150px;
+}
+
+.create-post-modal textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.create-post-modal select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.create-post-modal select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Image Upload Area */
+.image-upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.image-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-hover);
+  border: 1px dashed var(--color-border-light);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: fit-content;
+}
+
+.image-upload-btn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text);
+}
+
+.image-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.form-cancel {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.form-cancel:hover {
+  background: var(--color-hover);
 }
