@@ -1510,40 +1510,6 @@ body {
 
 .profile-avatar-clickable:hover .avatar-edit-overlay {
   opacity: 1;
-  }
-
-/* Camera overlay for avatar on My Profile */
-.avatar-camera-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  cursor: pointer;
-}
-
-.avatar-camera-overlay svg {
-  color: white;
-}
-
-.profile-avatar-clickable:hover .avatar-camera-overlay {
-  opacity: 1;
-}
-
-/* Avatar action item danger style */
-.avatar-action-danger {
-  color: #dc3545;
-}
-
-.avatar-action-danger:hover {
-  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .profile-info {
@@ -1569,23 +1535,8 @@ body {
 }
 
 .logout-btn-header:hover {
-  background-color: var(--color-hover);
-  border-color: var(--color-border);
-  }
-
-/* Chat button for other user profiles - blue pill with white text */
-.logout-btn-header.chat-btn {
-  background-color: var(--color-primary);
-  border: none;
-  border-radius: 9999px;
-  color: #fff;
-  padding: 10px 24px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.logout-btn-header.chat-btn:hover {
-  background-color: var(--color-primary-hover);
+  background: var(--color-hover);
+  border-color: var(--color-text-muted);
 }
 
 /* Profile Tabs */
@@ -2269,14 +2220,14 @@ body {
   top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-white);
+  background: var(--color-card);
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 140px;
   z-index: 100;
   overflow: hidden;
-  }
+}
 
 .avatar-action-item {
   display: flex;
