@@ -1026,64 +1026,219 @@ function renderProfileTabContent(tab, postsSort = 'new') {
   return '';
 }
 
-// Handle avatar file upload
+// Avatar crop state
+let cropImageSrc = null;
+let cropScale = 1;
+let cropOffsetX = 0;
+let cropOffsetY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+// Handle avatar file upload - now opens crop modal
 function handleAvatarUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   
   // Validate file type
   if (!file.type.startsWith('image/')) {
-    alert('Please select an image file.');
-    return;
+  alert('Please select an image file.');
+  return;
   }
   
-  // Validate file size (max 2MB)
-  const MAX_SIZE = 2 * 1024 * 1024;
+  // Validate file size (max 5MB for cropping, final will be smaller)
+  const MAX_SIZE = 5 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
-    alert('Image size must be less than 2MB.');
-    return;
+  alert('Image size must be less than 5MB.');
+  return;
   }
   
   const reader = new FileReader();
   reader.onload = function(event) {
-    const base64Image = event.target.result;
-    
-    // Update currentUser profile image
-    currentUser.profileImage = base64Image;
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    
-    // Update avatar display immediately
-    const avatarEl = document.getElementById('profileAvatarLarge');
-    if (avatarEl) {
-      const imgEl = avatarEl.querySelector('img');
-      if (imgEl) {
-        imgEl.src = base64Image;
-      } else {
-        // Create new img element
-        avatarEl.innerHTML = `
-          <img src="${base64Image}" alt="Profile">
-          <div class="avatar-edit-overlay">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-          </div>
-        `;
-      }
-    }
-    
-    // Update navbar profile button
-    renderProfileButton();
-    
-    // TODO: When backend API is available, upload file to server instead of using base64
-    // Example: await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+  cropImageSrc = event.target.result;
+  openAvatarCropModal();
   };
   
   reader.onerror = function() {
-    alert('Failed to read the image file.');
+  alert('Failed to read the image file.');
   };
   
   reader.readAsDataURL(file);
+}
+
+// Open avatar crop modal
+function openAvatarCropModal() {
+  const modal = document.getElementById('avatarCropModal');
+  const cropImage = document.getElementById('cropImage');
+  const zoomSlider = document.getElementById('zoomSlider');
+  
+  // Reset crop state
+  cropScale = 1;
+  cropOffsetX = 0;
+  cropOffsetY = 0;
+  zoomSlider.value = 100;
+  
+  cropImage.src = cropImageSrc;
+  cropImage.onload = function() {
+  updateCropTransform();
+  };
+  
+  modal.style.display = 'flex';
+  setupCropInteractions();
+}
+
+// Close avatar crop modal
+function closeAvatarCropModal() {
+  const modal = document.getElementById('avatarCropModal');
+  modal.style.display = 'none';
+  cropImageSrc = null;
+  // Reset the file input so the same file can be selected again
+  const avatarFileInput = document.getElementById('avatarFileInput');
+  if (avatarFileInput) avatarFileInput.value = '';
+}
+
+// Update crop image transform
+function updateCropTransform() {
+  const wrapper = document.getElementById('cropImageWrapper');
+  if (wrapper) {
+  wrapper.style.transform = `translate(${cropOffsetX}px, ${cropOffsetY}px) scale(${cropScale})`;
+  }
+}
+
+// Setup crop interactions (drag and zoom)
+function setupCropInteractions() {
+  const cropArea = document.getElementById('cropArea');
+  const zoomSlider = document.getElementById('zoomSlider');
+  
+  // Zoom slider
+  zoomSlider.oninput = function() {
+  cropScale = this.value / 100;
+  updateCropTransform();
+  };
+  
+  // Mouse drag
+  cropArea.onmousedown = function(e) {
+  e.preventDefault();
+  isDragging = true;
+  dragStartX = e.clientX - cropOffsetX;
+  dragStartY = e.clientY - cropOffsetY;
+  cropArea.style.cursor = 'grabbing';
+  };
+  
+  document.onmousemove = function(e) {
+  if (!isDragging) return;
+  cropOffsetX = e.clientX - dragStartX;
+  cropOffsetY = e.clientY - dragStartY;
+  updateCropTransform();
+  };
+  
+  document.onmouseup = function() {
+  isDragging = false;
+  if (cropArea) cropArea.style.cursor = 'grab';
+  };
+  
+  // Touch drag for mobile
+  cropArea.ontouchstart = function(e) {
+  if (e.touches.length === 1) {
+  isDragging = true;
+  dragStartX = e.touches[0].clientX - cropOffsetX;
+  dragStartY = e.touches[0].clientY - cropOffsetY;
+  }
+  };
+  
+  cropArea.ontouchmove = function(e) {
+  if (!isDragging || e.touches.length !== 1) return;
+  e.preventDefault();
+  cropOffsetX = e.touches[0].clientX - dragStartX;
+  cropOffsetY = e.touches[0].clientY - dragStartY;
+  updateCropTransform();
+  };
+  
+  cropArea.ontouchend = function() {
+  isDragging = false;
+  };
+}
+
+// Apply the crop and save
+function applyAvatarCrop() {
+  const cropImage = document.getElementById('cropImage');
+  const cropArea = document.getElementById('cropArea');
+  
+  // Get the visible area dimensions (the circle is 200px)
+  const circleSize = 200;
+  const areaRect = cropArea.getBoundingClientRect();
+  const centerX = areaRect.width / 2;
+  const centerY = areaRect.height / 2;
+  
+  // Create canvas to render cropped result
+  const canvas = document.createElement('canvas');
+  canvas.width = circleSize;
+  canvas.height = circleSize;
+  const ctx = canvas.getContext('2d');
+  
+  // Calculate source coordinates based on current transform
+  const img = cropImage;
+  const imgWidth = img.naturalWidth;
+  const imgHeight = img.naturalHeight;
+  
+  // The displayed image size
+  const displayedWidth = img.offsetWidth * cropScale;
+  const displayedHeight = img.offsetHeight * cropScale;
+  
+  // Center of the crop circle in image coordinates
+  const imgCenterX = (centerX - cropOffsetX) / cropScale;
+  const imgCenterY = (centerY - cropOffsetY) / cropScale;
+  
+  // Source rectangle
+  const sourceSize = circleSize / cropScale;
+  const sourceX = (imgCenterX - sourceSize / 2) * (imgWidth / img.offsetWidth);
+  const sourceY = (imgCenterY - sourceSize / 2) * (imgHeight / img.offsetHeight);
+  const sourceW = sourceSize * (imgWidth / img.offsetWidth);
+  const sourceH = sourceSize * (imgHeight / img.offsetHeight);
+  
+  // Draw circular clip
+  ctx.beginPath();
+  ctx.arc(circleSize / 2, circleSize / 2, circleSize / 2, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  
+  // Draw the image
+  ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, circleSize, circleSize);
+  
+  // Convert to base64
+  const croppedImage = canvas.toDataURL('image/jpeg', 0.9);
+  
+  // Update currentUser profile image
+  currentUser.profileImage = croppedImage;
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  
+  // Update avatar display immediately
+  const avatarEl = document.getElementById('profileAvatarLarge');
+  if (avatarEl) {
+  const imgEl = avatarEl.querySelector('img');
+  if (imgEl) {
+  imgEl.src = croppedImage;
+  } else {
+  avatarEl.innerHTML = `
+  <img src="${croppedImage}" alt="Profile">
+  <div class="avatar-edit-overlay">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+  <circle cx="12" cy="13" r="4"></circle>
+  </svg>
+  </div>
+  `;
+  }
+  }
+  
+  // Update navbar profile button
+  renderProfileButton();
+  
+  // Close modal
+  closeAvatarCropModal();
+  
+  // TODO: When backend API is available, upload cropped file to server
+  // Example: await fetch('/api/upload-avatar', { method: 'POST', body: formData });
 }
 
 // State for viewing other users
@@ -2228,6 +2383,14 @@ authForm.addEventListener('submit', handleAuthSubmit);
   document.getElementById('postImageInput').click();
   });
   document.getElementById('postImageInput').addEventListener('change', handlePostImageUpload);
+  
+  // Avatar crop modal event listeners
+  document.getElementById('closeAvatarCropModal').addEventListener('click', closeAvatarCropModal);
+  document.getElementById('cancelAvatarCrop').addEventListener('click', closeAvatarCropModal);
+  document.getElementById('applyAvatarCrop').addEventListener('click', applyAvatarCrop);
+  document.getElementById('avatarCropModal').addEventListener('click', (e) => {
+  if (e.target.id === 'avatarCropModal') closeAvatarCropModal();
+  });
   
   // Click outside handler (user menu removed)
 
