@@ -64,32 +64,11 @@
         <span id="profileBtnContent"></span>
       </button>
 
-      <!-- Hidden Auth Buttons container for compatibility -->
+      <!-- Hidden elements for compatibility -->
       <div class="auth-buttons" id="authButtons" style="display: none;"></div>
-
-      <!-- User Menu (shown when logged in) -->
-      <div class="user-menu" id="userMenu" style="display: none;">
-        <button class="user-menu-btn" id="userMenuBtn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <span class="username" id="usernameDisplay"></span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
-        <div class="user-dropdown" id="userDropdown">
-          <button class="dropdown-item" id="logoutBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            Log out
-          </button>
-        </div>
-      </div>
+      <div id="userMenu" style="display: none;"></div>
+      <span id="usernameDisplay" style="display: none;"></span>
+      <div id="userDropdown" style="display: none;"></div>
     </div>
   </nav>
 
@@ -180,6 +159,12 @@
               <option value="VA">Vatican City</option>
             </optgroup>
           </select>
+          <span class="field-helper">You can change this only once.</span>
+        </div>
+        <div class="form-group" id="nicknameGroup" style="display: none;">
+          <label for="signupNicknameInput">Nickname <span class="required">*</span></label>
+          <input type="text" id="signupNicknameInput" placeholder="Enter your nickname">
+          <span class="field-error" id="nicknameError" style="display: none;">Nickname is required</span>
         </div>
         <div class="form-group">
           <label for="emailInput">Email</label>

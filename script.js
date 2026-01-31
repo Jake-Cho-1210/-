@@ -536,17 +536,14 @@ function loadUser() {
 
 function updateAuthUI() {
   if (currentUser) {
-    // Logged in: hide Login, show Profile button and User Menu
+    // Logged in: hide Login, show Profile button
     loginBtn.style.display = 'none';
     profileBtn.style.display = 'flex';
-    userMenu.style.display = 'block';
-    usernameDisplay.textContent = getDisplayNameWithFlag(currentUser);
     renderProfileButton();
   } else {
-    // Logged out: show Login, hide Profile button and User Menu
+    // Logged out: show Login, hide Profile button
     loginBtn.style.display = 'block';
     profileBtn.style.display = 'none';
-    userMenu.style.display = 'none';
   }
 }
 
@@ -575,10 +572,12 @@ function renderProfileButton() {
 function openAuthModal(signup = false) {
   isSignupMode = signup;
   authModalTitle.textContent = signup ? 'Sign up' : 'Log in';
-  authSubmitBtn.textContent = signup ? 'Sign up' : 'Log in';
-  nameGroup.style.display = signup ? 'flex' : 'none';
-  nationalityGroup.style.display = signup ? 'flex' : 'none';
+  nameGroup.style.display = signup ? 'block' : 'none';
+  nationalityGroup.style.display = signup ? 'block' : 'none';
+  const nicknameGroup = document.getElementById('nicknameGroup');
+  if (nicknameGroup) nicknameGroup.style.display = signup ? 'block' : 'none';
   forgotPasswordLink.style.display = signup ? 'none' : 'block';
+  authSubmitBtn.textContent = signup ? 'Sign up' : 'Log in';
   authSwitch.innerHTML = signup 
     ? 'Already have an account? <button type="button" id="switchToLogin">Log in</button>'
     : 'Don\'t have an account? <button type="button" id="switchToSignup">Sign up</button>';
@@ -616,18 +615,37 @@ function handleAuthSubmit(e) {
   const password = passwordInput.value;
   const name = isSignupMode ? nameInput.value.trim() : email.split('@')[0];
   const nationality = isSignupMode ? nationalitySelect.value : null;
+  const signupNicknameInput = document.getElementById('signupNicknameInput');
+  const nickname = isSignupMode ? (signupNicknameInput ? signupNicknameInput.value.trim() : name) : name;
+  const nicknameError = document.getElementById('nicknameError');
   
   if (!email || !password || (isSignupMode && !name)) {
     return;
   }
+  
+  // Validate nickname for signup
+  if (isSignupMode && !nickname) {
+    if (nicknameError) {
+      nicknameError.style.display = 'block';
+      signupNicknameInput.focus();
+    }
+    return;
+  }
+  if (nicknameError) nicknameError.style.display = 'none';
   
   currentUser = {
     id: Date.now().toString(),
     name: name,
     email: email,
     nationality: nationality,
-    nickname: name,
+    nickname: nickname || name,
     age: null,
+    gender: null,
+    profileImage: null,
+    nameChangedOnce: false,
+    nationalityChangedOnce: false,
+    savedPosts: [],
+    myComments: [],
     followers: Math.floor(Math.random() * 100),
     following: Math.floor(Math.random() * 50)
   };
@@ -641,12 +659,9 @@ function logout() {
   currentUser = null;
   localStorage.removeItem('currentUser');
   updateAuthUI();
-  userDropdown.classList.remove('active');
 }
 
-function toggleUserDropdown() {
-  userDropdown.classList.toggle('active');
-}
+// toggleUserDropdown removed - logout is now in profile page
 
 // Forgot Password Functions
 function showForgotPasswordForm() {
@@ -688,6 +703,20 @@ function openMyPage() {
   // Hide the feed header
   feedHeader.style.display = 'none';
   
+  renderMyPageView('edit');
+  
+  window.scrollTo(0, 0);
+}
+
+// Active profile tab state
+let activeProfileTab = 'edit';
+
+// Render My Page view with tabs
+function renderMyPageView(tab = 'edit') {
+  activeProfileTab = tab;
+  const flag = getFlagEmoji(currentUser.nationality);
+  const profileImg = currentUser.profileImage || '';
+  
   postsContainer.innerHTML = `
     <div class="my-page-view">
       <button class="back-btn" id="backFromMyPage">
@@ -696,46 +725,162 @@ function openMyPage() {
         </svg>
         Back
       </button>
-      <div class="my-page-card">
-        <h2 class="my-page-title">${getDisplayNameWithFlag(currentUser)}</h2>
-        <div class="my-page-stats">
-          <div class="stat-item">
-            <span class="stat-number">${currentUser.followers || 0}</span>
-            <span class="stat-label">Followers</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">${currentUser.following || 0}</span>
-            <span class="stat-label">Following</span>
+      
+      <!-- Profile Header -->
+      <div class="profile-header-row">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar-large" id="profileAvatarLarge">
+            ${profileImg ? `<img src="${profileImg}" alt="Profile" onerror="this.parentElement.innerHTML='<svg width=\\'48\\' height=\\'48\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
           </div>
         </div>
-        <form class="my-page-form" id="myPageForm">
-          <div class="form-group">
-            <label for="nicknameInput">Nickname</label>
-            <input type="text" id="nicknameInput" value="${currentUser.nickname || ''}" placeholder="Enter nickname">
-          </div>
-          <div class="form-group">
-            <label for="profileNameInput">Name</label>
-            <input type="text" id="profileNameInput" value="${currentUser.name || ''}" placeholder="Enter name">
-          </div>
-<div class="form-group">
-  <label for="ageInput">Age</label>
-  <input type="number" id="ageInput" value="${currentUser.age || ''}" placeholder="Enter age" min="1" max="120">
-  </div>
-  <div class="form-group">
-  <label for="profileImageInput">Profile Image URL</label>
-  <input type="url" id="profileImageInput" value="${currentUser.profileImage || ''}" placeholder="Enter image URL">
-  </div>
-  <button type="submit" class="form-submit">Save</button>
-        </form>
+        <div class="profile-info">
+          <span class="profile-display-name">${flag} ${currentUser.nickname || currentUser.name}</span>
+        </div>
+        <button class="logout-btn-header" id="logoutBtnHeader">Logout</button>
+      </div>
+      
+      <!-- Profile Tabs -->
+      <div class="profile-tabs">
+        <button class="profile-tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">Edit profile</button>
+        <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
+        <button class="profile-tab ${tab === 'saved' ? 'active' : ''}" data-tab="saved">Saved</button>
+      </div>
+      
+      <!-- Tab Content -->
+      <div class="profile-tab-content" id="profileTabContent">
+        ${renderProfileTabContent(tab)}
       </div>
     </div>
   `;
   
-  window.scrollTo(0, 0);
-  
   // Add event listeners
   document.getElementById('backFromMyPage').addEventListener('click', closeMyPage);
-  document.getElementById('myPageForm').addEventListener('submit', handleMyPageSave);
+  document.getElementById('logoutBtnHeader').addEventListener('click', () => {
+    logout();
+    closeMyPage();
+  });
+  
+  // Tab switching
+  document.querySelectorAll('.profile-tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      renderMyPageView(tabBtn.dataset.tab);
+    });
+  });
+  
+  // Form submit for edit tab
+  if (tab === 'edit') {
+    const form = document.getElementById('editProfileForm');
+    if (form) form.addEventListener('submit', handleMyPageSave);
+  }
+  
+  // Click handlers for saved posts and comments
+  if (tab === 'saved') {
+    document.querySelectorAll('.saved-post-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeMyPage();
+        openPostDetail(postId);
+      });
+    });
+  }
+  if (tab === 'comments') {
+    document.querySelectorAll('.my-comment-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeMyPage();
+        openPostDetail(postId);
+      });
+    });
+  }
+}
+
+// Render content for each profile tab
+function renderProfileTabContent(tab) {
+  if (tab === 'edit') {
+    const nameDisabled = currentUser.nameChangedOnce ? 'disabled' : '';
+    const natDisabled = currentUser.nationalityChangedOnce ? 'disabled' : '';
+    return `
+      <form class="my-page-form" id="editProfileForm">
+        <div class="form-group">
+          <label for="profileNameInput">Name</label>
+          <input type="text" id="profileNameInput" value="${currentUser.name || ''}" placeholder="Enter name" ${nameDisabled}>
+          <span class="field-helper">${currentUser.nameChangedOnce ? 'Already changed once.' : 'You can change this only once.'}</span>
+        </div>
+        <div class="form-group">
+          <label for="nicknameInput">Nickname <span class="required">*</span></label>
+          <input type="text" id="nicknameInput" value="${currentUser.nickname || ''}" placeholder="Enter nickname" required>
+          <span class="field-error" id="editNicknameError" style="display: none;">Nickname is required</span>
+        </div>
+        <div class="form-group">
+          <label for="ageInput">Age</label>
+          <input type="number" id="ageInput" value="${currentUser.age || ''}" placeholder="Enter age" min="0" max="120">
+        </div>
+        <div class="form-group">
+          <label for="nationalityEditSelect">Nationality</label>
+          <select id="nationalityEditSelect" ${natDisabled}>
+            <option value="">Select nationality</option>
+            <option value="US" ${currentUser.nationality === 'US' ? 'selected' : ''}>United States</option>
+            <option value="CA" ${currentUser.nationality === 'CA' ? 'selected' : ''}>Canada</option>
+            <option value="KR" ${currentUser.nationality === 'KR' ? 'selected' : ''}>South Korea</option>
+            <option value="JP" ${currentUser.nationality === 'JP' ? 'selected' : ''}>Japan</option>
+            <option value="CN" ${currentUser.nationality === 'CN' ? 'selected' : ''}>China</option>
+            <option value="GB" ${currentUser.nationality === 'GB' ? 'selected' : ''}>United Kingdom</option>
+            <option value="DE" ${currentUser.nationality === 'DE' ? 'selected' : ''}>Germany</option>
+            <option value="FR" ${currentUser.nationality === 'FR' ? 'selected' : ''}>France</option>
+            <option value="AU" ${currentUser.nationality === 'AU' ? 'selected' : ''}>Australia</option>
+            <option value="NL" ${currentUser.nationality === 'NL' ? 'selected' : ''}>Netherlands</option>
+          </select>
+          <span class="field-helper">${currentUser.nationalityChangedOnce ? 'Already changed once.' : 'You can change this only once.'}</span>
+        </div>
+        <div class="form-group">
+          <label for="genderSelect">Gender</label>
+          <select id="genderSelect">
+            <option value="">Prefer not to say</option>
+            <option value="male" ${currentUser.gender === 'male' ? 'selected' : ''}>Male</option>
+            <option value="female" ${currentUser.gender === 'female' ? 'selected' : ''}>Female</option>
+            <option value="other" ${currentUser.gender === 'other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="profileImageInput">Profile Image URL</label>
+          <input type="url" id="profileImageInput" value="${currentUser.profileImage || ''}" placeholder="Enter image URL">
+        </div>
+        <button type="submit" class="form-submit">Save changes</button>
+      </form>
+    `;
+  } else if (tab === 'comments') {
+    const comments = currentUser.myComments || [];
+    if (comments.length === 0) {
+      return `<div class="empty-tab-message">No comments yet.</div>`;
+    }
+    return `
+      <div class="my-comments-list">
+        ${comments.map(c => `
+          <div class="my-comment-item" data-post-id="${c.postId}">
+            <div class="comment-text">${c.text}</div>
+            <div class="comment-meta">on post #${c.postId} - ${formatTimeAgo(c.createdAt)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (tab === 'saved') {
+    const savedPostIds = currentUser.savedPosts || [];
+    if (savedPostIds.length === 0) {
+      return `<div class="empty-tab-message">No saved posts yet.</div>`;
+    }
+    const savedPostsData = posts.filter(p => savedPostIds.includes(p.id));
+    return `
+      <div class="saved-posts-list">
+        ${savedPostsData.map(p => `
+          <div class="saved-post-item" data-post-id="${p.id}">
+            <div class="saved-post-title">${p.title}</div>
+            <div class="saved-post-meta">${formatTimeAgo(p.createdAt)} - ${p.categoryLabel}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  return '';
 }
 
 // Close My Page and return to feed
@@ -752,10 +897,46 @@ function closeMyPage() {
 function handleMyPageSave(e) {
   e.preventDefault();
   
-  currentUser.nickname = document.getElementById('nicknameInput').value.trim() || currentUser.nickname;
-  currentUser.name = document.getElementById('profileNameInput').value.trim() || currentUser.name;
+  const nicknameVal = document.getElementById('nicknameInput').value.trim();
+  const nicknameError = document.getElementById('editNicknameError');
+  
+  // Validate nickname
+  if (!nicknameVal) {
+    if (nicknameError) nicknameError.style.display = 'block';
+    return;
+  }
+  if (nicknameError) nicknameError.style.display = 'none';
+  
+  currentUser.nickname = nicknameVal;
+  
+  // Name - can only change once
+  const newName = document.getElementById('profileNameInput').value.trim();
+  if (newName && newName !== currentUser.name && !currentUser.nameChangedOnce) {
+    currentUser.name = newName;
+    currentUser.nameChangedOnce = true;
+  }
+  
+  // Age
   const ageVal = document.getElementById('ageInput').value;
   currentUser.age = ageVal ? parseInt(ageVal) : null;
+  
+  // Nationality - can only change once
+  const natSelect = document.getElementById('nationalityEditSelect');
+  if (natSelect) {
+    const newNat = natSelect.value;
+    if (newNat && newNat !== currentUser.nationality && !currentUser.nationalityChangedOnce) {
+      currentUser.nationality = newNat;
+      currentUser.nationalityChangedOnce = true;
+    }
+  }
+  
+  // Gender
+  const genderSelect = document.getElementById('genderSelect');
+  if (genderSelect) {
+    currentUser.gender = genderSelect.value || null;
+  }
+  
+  // Profile image
   currentUser.profileImage = document.getElementById('profileImageInput').value.trim() || null;
   
   localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -765,8 +946,12 @@ function handleMyPageSave(e) {
   const btn = document.querySelector('.my-page-form .form-submit');
   const originalText = btn.textContent;
   btn.textContent = 'Saved!';
+  btn.style.backgroundColor = 'var(--color-success, #22c55e)';
   setTimeout(() => {
     btn.textContent = originalText;
+    btn.style.backgroundColor = '';
+    // Re-render to update header with new values
+    renderMyPageView('edit');
   }, 1500);
 }
 
@@ -1462,20 +1647,14 @@ authModalOverlay.addEventListener('click', (e) => {
   if (e.target === authModalOverlay) closeAuthModal();
 });
 authForm.addEventListener('submit', handleAuthSubmit);
-userMenuBtn.addEventListener('click', toggleUserDropdown);
-logoutBtn.addEventListener('click', logout);
+// userMenuBtn removed - using profile button with in-page logout
 
 // Forgot password event listeners
 forgotPasswordBtn.addEventListener('click', showForgotPasswordForm);
 sendResetBtn.addEventListener('click', handleSendResetLink);
 backToLoginBtn.addEventListener('click', backToLogin);
 
-// Close dropdowns when clicking outside
-document.addEventListener('click', (e) => {
-  if (!userMenu.contains(e.target)) {
-    userDropdown.classList.remove('active');
-  }
-});
+// Click outside handler (user menu removed)
 
 // Handle escape key to close modals/sidebars
 document.addEventListener('keydown', (e) => {
@@ -1485,11 +1664,10 @@ document.addEventListener('keydown', (e) => {
     if (isDetailView) {
       closePostDetail();
     }
-    if (isMyPageView) {
-      closeMyPage();
-    }
-    userDropdown.classList.remove('active');
-  }
+if (isMyPageView) {
+  closeMyPage();
+}
+}
 });
 
 // Initial render
