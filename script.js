@@ -575,10 +575,11 @@ const themeToggleBtn = document.getElementById('themeToggleBtn');
 
 let isSignupMode = false;
 
-// Initialize app
-function init() {
+  // Initialize app
+  function init() {
   loadTheme();
   loadUser();
+  loadUserPosts(); // Load user-created posts from localStorage - TODO: remove when backend is implemented
   renderProfileButton();
   renderPosts();
   
@@ -1013,36 +1014,36 @@ function renderProfileTabContent(tab, postsSort = 'new') {
     // TODO: Connect to backend API when available
     let userPosts = posts.filter(p => p.author === (currentUser.nickname || currentUser.name));
     
-    // Sort posts
-    if (postsSort === 'top') {
-      userPosts = userPosts.sort((a, b) => b.votes - a.votes);
-    } else {
-      userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
-    }
-    
-    return `
-      <div class="posts-sort-row">
-        <button class="posts-sort-btn ${postsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
-        <button class="posts-sort-btn ${postsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
-      </div>
-      ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
-      <div class="my-posts-list">
-        ${userPosts.map(p => `
-          <div class="my-post-item" data-post-id="${p.id}">
-            <div class="my-post-title">${p.title}</div>
-            <div class="my-post-meta">
-              <span>${formatTimeAgo(p.createdAt)}</span>
-              <span>${p.categoryLabel}</span>
-              <span>${p.votes} votes</span>
-              <span>${p.comments} comments</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      `}
-    `;
+  // Sort posts
+  if (postsSort === 'top') {
+  userPosts = userPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else {
+  userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
+  }
+  
+  return `
+  <div class="posts-sort-row">
+  <button class="posts-sort-btn ${postsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
+  <button class="posts-sort-btn ${postsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
+  </div>
+  ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
+  <div class="my-posts-list">
+  ${userPosts.map(p => `
+  <div class="my-post-item" data-post-id="${p.id}">
+  <div class="my-post-title">${p.title}</div>
+  <div class="my-post-meta">
+  <span>${formatTimeAgo(p.createdAt)}</span>
+  <span>${p.categoryLabel}</span>
+  <span>${p.likes || 0} likes</span>
+  <span>${p.comments} comments</span>
+  </div>
+  </div>
+  `).join('')}
+  </div>
+  `}
+  `;
   } else if (tab === 'comments') {
-    const comments = currentUser.myComments || [];
+  const comments = currentUser.myComments || [];
     if (comments.length === 0) {
       return `<div class="empty-tab-message">No comments yet.</div>`;
     }
@@ -1540,36 +1541,36 @@ function renderOtherUserTabContent(tab, postsSort = 'new') {
     // Get posts by this user
     let userPosts = posts.filter(p => p.author === viewingUser.nickname);
     
-    // Sort posts
-    if (postsSort === 'top') {
-      userPosts = userPosts.sort((a, b) => b.votes - a.votes);
-    } else {
-      userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
-    }
-    
-    return `
-      <div class="posts-sort-row">
-        <button class="posts-sort-btn ${postsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
-        <button class="posts-sort-btn ${postsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
-      </div>
-      ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
-      <div class="my-posts-list">
-        ${userPosts.map(p => `
-          <div class="my-post-item" data-post-id="${p.id}">
-            <div class="my-post-title">${p.title}</div>
-            <div class="my-post-meta">
-              <span>${formatTimeAgo(p.createdAt)}</span>
-              <span>${p.categoryLabel}</span>
-              <span>${p.votes} votes</span>
-              <span>${p.comments} comments</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      `}
-    `;
+  // Sort posts
+  if (postsSort === 'top') {
+  userPosts = userPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else {
+  userPosts = userPosts.sort((a, b) => b.createdAt - a.createdAt);
+  }
+  
+  return `
+  <div class="posts-sort-row">
+  <button class="posts-sort-btn ${postsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
+  <button class="posts-sort-btn ${postsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
+  </div>
+  ${userPosts.length === 0 ? `<div class="empty-tab-message">No posts yet.</div>` : `
+  <div class="my-posts-list">
+  ${userPosts.map(p => `
+  <div class="my-post-item" data-post-id="${p.id}">
+  <div class="my-post-title">${p.title}</div>
+  <div class="my-post-meta">
+  <span>${formatTimeAgo(p.createdAt)}</span>
+  <span>${p.categoryLabel}</span>
+  <span>${p.likes || 0} likes</span>
+  <span>${p.comments} comments</span>
+  </div>
+  </div>
+  `).join('')}
+  </div>
+  `}
+  `;
   } else if (tab === 'comments') {
-    // TODO: Fetch user's comments from backend
+  // TODO: Fetch user's comments from backend
     // For now, return empty since we don't have other users' comments stored
     return `<div class="empty-tab-message">No comments to show.</div>`;
   }
@@ -1583,21 +1584,24 @@ function closeUserProfile() {
   
   // Check if we should return to a post detail view
   if (returnToPostId !== null) {
-    const postIdToReturn = returnToPostId;
-    returnToPostId = null; // Clear the return state
-    openPostDetail(postIdToReturn);
-    return;
+  const postIdToReturn = returnToPostId;
+  returnToPostId = null; // Clear the return state
+  openPostDetail(postIdToReturn);
+  return;
   }
   
   // Show the feed header again
   feedHeader.style.display = 'flex';
+  
+  // Restore community layout (Hot/New/Top filters, Topic filters)
+  updateFeedTabs();
   
   // Re-render posts
   renderPosts();
   
   // Restore scroll position
   setTimeout(() => {
-    window.scrollTo(0, feedScrollPosition);
+  window.scrollTo(0, feedScrollPosition);
   }, 0);
 }
 
@@ -1605,9 +1609,13 @@ function closeUserProfile() {
 function closeMyPage() {
   isMyPageView = false;
   feedHeader.style.display = 'flex';
+  
+  // Restore community layout (Hot/New/Top filters, Topic filters)
+  updateFeedTabs();
+  
   renderPosts();
   setTimeout(() => {
-    window.scrollTo(0, feedScrollPosition);
+  window.scrollTo(0, feedScrollPosition);
   }, 0);
 }
 
@@ -2392,6 +2400,13 @@ function handleCategoryClick(e) {
     currentPostId = null;
     feedHeader.style.display = 'flex';
   }
+  
+  // If in profile view (My Page or other user profile), close it
+  if (isMyPageView) {
+    isMyPageView = false;
+    viewingUser = null;
+    feedHeader.style.display = 'flex';
+  }
 
   // Clear return-to-post state when explicitly navigating to a category
   returnToPostId = null;
@@ -2634,21 +2649,28 @@ function handleCreatePost(e) {
 
 function createNewPost(title, content, topic, imageUrl) {
   const newPost = {
-    id: Date.now(),
-    title: title,
-    content: content,
-    category: 'free-board',
-    categoryLabel: 'Travexlo Lounge',
-    author: currentUser.nickname || currentUser.name,
-    authorNationality: currentUser.nationality,
-    createdAt: Date.now(),
-    votes: 0,
-    comments: 0,
-    topic: topic,
-    image: imageUrl
+  id: Date.now(),
+  title: title,
+  content: content,
+  category: 'free-board',
+  categoryLabel: 'Travexlo Lounge',
+  author: currentUser.nickname || currentUser.name,
+  authorNationality: currentUser.nationality,
+  createdAt: Date.now(),
+  votes: 0,
+  likes: 0,
+  comments: 0,
+  topic: topic,
+  image: imageUrl,
+  isUserCreated: true // Flag for localStorage persistence - TODO: remove when backend is implemented
   };
   
   posts.unshift(newPost);
+  
+  // Persist user-created posts to localStorage
+  // TODO: Remove this when backend storage is implemented
+  saveUserPosts();
+  
   closeCreatePostModal();
   
   // Switch to free-board category and render
@@ -2839,9 +2861,13 @@ function handleEditPostSubmit(e) {
   // Optimistic update
   const postIndex = posts.findIndex(p => p.id === postId);
   if (postIndex !== -1) {
-    posts[postIndex].title = newTitle;
-    posts[postIndex].content = newContent;
-    posts[postIndex].updatedAt = Date.now();
+  posts[postIndex].title = newTitle;
+  posts[postIndex].content = newContent;
+  posts[postIndex].updatedAt = Date.now();
+  
+  // Update localStorage for user-created posts
+  // TODO: Remove this when backend storage is implemented
+  saveUserPosts();
   }
   
   closeEditPostModal();
@@ -2899,8 +2925,12 @@ function deletePost(postId) {
   // Optimistic update - remove from array
   const postIndex = posts.findIndex(p => p.id === postId);
   if (postIndex !== -1) {
-    posts.splice(postIndex, 1);
+  posts.splice(postIndex, 1);
   }
+  
+  // Update localStorage for user-created posts
+  // TODO: Remove this when backend storage is implemented
+  saveUserPosts();
   
   // Also remove from localStorage comments
   const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
@@ -3236,6 +3266,32 @@ function getComments(postId) {
   const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
   return allComments[postId] || [];
   }
+
+// ============================================
+// POST PERSISTENCE (temporary frontend storage)
+// TODO: Remove this when backend storage is implemented
+// ============================================
+
+// Save user-created posts to localStorage
+function saveUserPosts() {
+  // Only save posts created by users (those with isUserCreated flag)
+  const userCreatedPosts = posts.filter(p => p.isUserCreated);
+  localStorage.setItem('userCreatedPosts', JSON.stringify(userCreatedPosts));
+}
+
+// Load user-created posts from localStorage and merge with default posts
+function loadUserPosts() {
+  const savedPosts = JSON.parse(localStorage.getItem('userCreatedPosts') || '[]');
+  if (savedPosts.length > 0) {
+    // Merge saved posts with existing posts, avoiding duplicates by ID
+    const existingIds = new Set(posts.map(p => p.id));
+    for (const savedPost of savedPosts) {
+      if (!existingIds.has(savedPost.id)) {
+        posts.push(savedPost);
+      }
+    }
+  }
+}
   
   function saveVoteState(postId, userVote, voteCount) {
   // TODO: Persist to backend when available
