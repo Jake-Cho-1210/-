@@ -591,31 +591,31 @@ let isSignupMode = false;
   }
 
 // Handle browser back/forward navigation
-window.addEventListener('popstate', function(event) {
+  window.addEventListener('popstate', function(event) {
   const state = event.state;
   
   if (!state || state.view === 'feed') {
-    // Return to feed
-    isDetailView = false;
-    isMyPageView = false;
-    currentPostId = null;
-    viewingUser = null;
-    feedHeader.style.display = 'flex';
-    updateFeedTabs();
-    renderPosts();
+  // Return to feed
+  isDetailView = false;
+  isMyPageView = false;
+  currentPostId = null;
+  viewingUser = null;
+  feedHeader.style.display = 'flex';
+  updateFeedTabs();
+  renderPosts();
   } else if (state.view === 'post') {
-    // Return to post detail
-    openPostDetail(state.postId, true);
-} else if (state.view === 'mypage') {
+  // Return to post detail
+  openPostDetail(state.postId, true);
+  } else if (state.view === 'mypage') {
   // Return to My Page with saved tab
   activeProfileTab = state.tab || 'edit';
   openMyPage(true);
   renderMyPageView(activeProfileTab);
   } else if (state.view === 'userprofile') {
-    // Return to user profile
-    openUserProfile(state.author, state.nationality, true);
+  // Return to user profile
+  openUserProfile(state.author, state.nationality, true);
   }
-});
+  });
 
 // Theme Functions
 function loadTheme() {
@@ -1817,13 +1817,13 @@ function formatCommentTime(timestamp) {
 }
 
 // Open post detail view (inline, not modal)
-function openPostDetail(postId, skipHistory = false) {
+  function openPostDetail(postId, skipHistory = false) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
   
   // Push to history for back navigation (unless restoring from popstate)
   if (!skipHistory) {
-    history.pushState({ view: 'post', postId: postId }, '', `#post-${postId}`);
+  history.pushState({ view: 'post', postId: postId }, '', `#post-${postId}`);
   }
   
   // Find post card crossing virtual anchor line (120px from top)
@@ -2081,7 +2081,7 @@ ${comments.length} Comments
   const nationality = el.dataset.nationality;
   // Don't open own profile - go to My Page instead
   if (currentUser && (author === currentUser.nickname || author === currentUser.name)) {
-  closePostDetail();
+  // Just push My Page onto history stack (don't call closePostDetail first)
   openMyPage();
   } else {
   openUserProfile(author, nationality);
@@ -2163,7 +2163,7 @@ function handleDetailSave(postId) {
 
 // Close post detail and return to feed
 // Close Post Detail - use history.back() for proper back navigation
-function closePostDetail() {
+  function closePostDetail() {
   window.history.back();
   }
 
@@ -2194,12 +2194,12 @@ function restoreToFeed() {
     
     // Update language tabs active state
     langTabs.forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.lang === currentLanguage);
+      tab.classList.toggle('active', tab.dataset.lang === currentLanguage);
     });
     
     // Update topic tabs active state
     topicTabs.forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.topic === currentTopic);
+      tab.classList.toggle('active', tab.dataset.topic === currentTopic);
     });
   }
   
@@ -2214,402 +2214,79 @@ function restoreToFeed() {
   const ANCHOR_LINE_Y = 120;
   const anchorId = savedFeedState ? savedFeedState.anchorPostId : null;
   const anchorOffset = savedFeedState ? savedFeedState.anchorOffset : 0;
-  const fallbackScrollY = savedFeedState ? savedFeedState.scrollY : 0;
   
-  let retryCount = 0;
-  const MAX_RETRIES = 30;
-  
-  function restoreScrollPosition() {
-    if (anchorId) {
-      const anchorEl = document.querySelector(`.post-card[data-post-id="${anchorId}"]`);
-      if (anchorEl) {
-        // Scroll so anchor card is at same position relative to anchor line
-        const targetScrollY = anchorEl.offsetTop - ANCHOR_LINE_Y + anchorOffset;
-        window.scrollTo(0, Math.max(0, targetScrollY));
-        savedFeedState = null;
-        return;
+  if (anchorId) {
+    const tryRestore = () => {
+      const anchorCard = document.querySelector(`.post-card[data-post-id="${anchorId}"]`);
+      if (anchorCard) {
+        const anchorRect = anchorCard.getBoundingClientRect();
+        const scrollTarget = window.scrollY + anchorRect.top - ANCHOR_LINE_Y + anchorOffset;
+        window.scrollTo(0, Math.max(0, scrollTarget));
       }
-    }
-    if (retryCount < MAX_RETRIES) {
-      retryCount++;
-      requestAnimationFrame(restoreScrollPosition);
-    } else {
-      // Fallback to saved scrollY
-      window.scrollTo(0, fallbackScrollY);
-      savedFeedState = null;
-    }
+    };
+    // Try immediately, then again after a frame (for dynamic content)
+    tryRestore();
+    requestAnimationFrame(tryRestore);
   }
-  
-  // Double requestAnimationFrame for layout stabilization
-  requestAnimationFrame(() => {
-    requestAnimationFrame(restoreScrollPosition);
-  });
 }
 
-// Handle vote in detail view
-function handleDetailVote(postId, direction) {
-  const voteState = getVoteState(postId);
-  let newUserVote = voteState.userVote;
-  let newVoteCount = voteState.voteCount;
+// Logo click - return to homepage feed
+const logoLink = document.getElementById('logoLink');
+logoLink.addEventListener('click', (e) => {
+  e.preventDefault();
   
-  if (voteState.userVote === direction) {
-    newUserVote = 0;
-    newVoteCount -= direction;
-  } else {
-    newVoteCount -= voteState.userVote;
-    newVoteCount += direction;
-    newUserVote = direction;
+  // Track if we need to push a new feed state
+  const needsHistoryPush = isDetailView || isMyPageView;
+  
+  // Reset state to defaults
+  currentCategory = 'all';
+  currentSort = 'hot';
+  searchQuery = '';
+  searchInput.value = '';
+  isDetailView = false;
+  isMyPageView = false;
+  currentPostId = null;
+  viewingUser = null;
+  
+  // Push new feed state to history when navigating away from detail/profile views
+  if (needsHistoryPush) {
+    history.pushState({ view: 'feed' }, '', window.location.pathname);
   }
-  
-  saveVoteState(postId, newUserVote, newVoteCount);
   
   // Update UI
-  const upvoteBtn = postsContainer.querySelector('.vote-btn.upvote');
-  const downvoteBtn = postsContainer.querySelector('.vote-btn.downvote');
-  const voteCountEl = document.getElementById('detailVoteCount');
-  
-  upvoteBtn.classList.toggle('active', newUserVote === 1);
-  downvoteBtn.classList.toggle('active', newUserVote === -1);
-  voteCountEl.textContent = formatLikes(newVoteCount);
+  navItems.forEach(item => {
+    item.classList.toggle('active', item.dataset.category === 'all');
+  });
+  sortButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === 'hot');
+  });
+  feedTitle.textContent = 'All Posts';
+  feedHeader.style.display = 'flex';
+  updateFeedTabs();
+  renderPosts();
+  window.scrollTo(0, 0);
+});
+
+// Mobile sidebar functions
+function openMobileSidebar() {
+  leftSidebar.classList.add('open');
+  sidebarOverlay.classList.add('visible');
+  document.body.style.overflow = 'hidden';
 }
 
-// Handle comment submit
-function handleCommentSubmit(postId) {
-  const input = document.getElementById('commentInput');
-  const text = input.value.trim();
-  
-  if (!text || !currentUser) return;
-  
-const comment = {
-  id: Date.now(),
-  postId: postId,
-  author: currentUser.nickname || currentUser.name,
-  authorId: currentUser.id, // Store authorId for reliable ownership detection
-  authorNationality: currentUser.nationality,
-  text: text,
-  createdAt: Date.now(),
-  likes: 0 // Initialize likes count - TODO: Remove when backend handles this
-  };
-  
-  saveComment(postId, comment);
-  input.value = '';
-  
-  // Add to current user's myComments for profile view
-  if (!currentUser.myComments) currentUser.myComments = [];
-  currentUser.myComments.push(comment);
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-  
-  // Re-render post detail to show new comment
-  openPostDetail(postId);
+function closeMobileSidebar() {
+  leftSidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('visible');
+  document.body.style.overflow = '';
 }
-
-// Create post card HTML
-function createPostCard(post) {
-  const voteState = getVoteState(post.id);
-  const likeState = getLikeState(post.id);
-  const viewCount = getViewCount(post.id);
-  const imageHTML = post.image 
-    ? `<div class="post-image-container">
-        <img 
-          src="${post.image}" 
-          alt="${post.title}" 
-          class="post-image" 
-          loading="lazy"
-        />
-      </div>`
-    : '';
-
-return `
-  <article class="post-card" data-post-id="${post.id}" tabindex="0" role="button" aria-label="View post: ${post.title}">
-  <div class="post-content">
-        ${currentUser ? `
-        <div class="kebab-menu-container">
-          <button class="kebab-menu-btn" data-post-id="${post.id}" aria-label="Post options">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="5" r="2"></circle>
-              <circle cx="12" cy="12" r="2"></circle>
-              <circle cx="12" cy="19" r="2"></circle>
-            </svg>
-          </button>
-          <div class="kebab-menu" data-post-id="${post.id}">
-            ${isPostOwner(post) ? `
-              <button class="kebab-menu-item" data-action="edit" data-post-id="${post.id}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                Edit
-              </button>
-              <button class="kebab-menu-item danger" data-action="delete" data-post-id="${post.id}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-                Delete
-              </button>
-            ` : `
-              <button class="kebab-menu-item" data-action="report" data-post-id="${post.id}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                  <line x1="4" y1="22" x2="4" y2="15"></line>
-                </svg>
-                Report
-              </button>
-            `}
-          </div>
-        </div>
-        ` : ''}
-        <div class="post-meta">
-<span class="post-category">${post.categoryLabel}</span>
-  <span>Posted by</span>
-  ${formatAuthorDisplay(post.author, post.authorNationality)}
-  <span>•</span>
-  <span data-created-at="${post.createdAt}">${formatTimeAgo(post.createdAt)}</span>
-  </div>
-  <h3 class="post-title">${post.title}</h3>
-        ${imageHTML}
-        <p class="post-preview">${post.content}</p>
-<div class="post-actions">
-  <button class="action-btn like-btn ${likeState.liked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like">
-  <svg viewBox="0 0 24 24" fill="${likeState.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-  </svg>
-  <span class="like-count">${likeState.count}</span>
-  </button>
-  <button class="action-btn comments-btn">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-  </svg>
-  ${getComments(post.id).length || post.comments} Comments
-  </button>
-  <button class="action-btn save-btn ${isPostSaved(post.id) ? 'saved' : ''}" data-post-id="${post.id}" aria-label="Save">
-  <svg viewBox="0 0 24 24" fill="${isPostSaved(post.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-  </svg>
-  <span class="save-text">${isPostSaved(post.id) ? 'Saved' : 'Save'}</span>
-  </button>
-  <span class="action-btn view-count-display" aria-label="Views">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-  <circle cx="12" cy="12" r="3"></circle>
-  </svg>
-  ${viewCount}
-  </span>
-  </div>
-      </div>
-    </article>
-  `;
-}
-
-// Filter and sort posts
-function getFilteredPosts() {
-  let filtered = [...posts];
-
-  if (currentCategory !== 'all') {
-    filtered = filtered.filter(post => post.category === currentCategory);
-  }
-
-  if (languageFilterCategories.includes(currentCategory)) {
-    filtered = filtered.filter(post => post.language === currentLanguage);
-  }
-
-  // Filter by activity type when viewing activities category
-  if (currentCategory === 'activities') {
-  filtered = filtered.filter(post => post.activityType === currentActivityType);
-  }
-  
-  // Filter by topic when viewing free-board category
-  if (currentCategory === 'free-board' && currentTopic !== 'all') {
-  filtered = filtered.filter(post => post.topic === currentTopic);
-  }
-  
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase();
-    filtered = filtered.filter(post => 
-      post.title.toLowerCase().includes(query) || 
-      post.content.toLowerCase().includes(query) ||
-      post.author.toLowerCase().includes(query)
-    );
-  }
-
-// Apply sorting for all categories
-  switch (currentSort) {
-  case 'hot':
-  filtered.sort((a, b) => ((b.likes || 0) + b.comments * 2) - ((a.likes || 0) + a.comments * 2));
-  break;
-  case 'new':
-  filtered.sort((a, b) => b.createdAt - a.createdAt);
-  break;
-  case 'top':
-  filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-  break;
-  }
-
-  return filtered;
-}
-
-// Update feed tabs visibility based on category
-  function updateFeedTabs() {
-  if (languageFilterCategories.includes(currentCategory)) {
-  // Show both Hot/New/Top and Language tabs for Korean Starter Pack and Audio Guides
-  feedSort.style.display = 'flex';
-  feedLanguageTabs.style.display = 'flex';
-  feedActivityTabs.style.display = 'none';
-  feedTopicTabs.style.display = 'none';
-  createPostBtn.style.display = 'none';
-  } else if (currentCategory === 'activities') {
-  feedSort.style.display = 'none';
-  feedLanguageTabs.style.display = 'none';
-  feedActivityTabs.style.display = 'flex';
-  feedTopicTabs.style.display = 'none';
-  createPostBtn.style.display = 'none';
-  } else if (currentCategory === 'free-board') {
-  feedSort.style.display = 'flex';
-  feedLanguageTabs.style.display = 'none';
-  feedActivityTabs.style.display = 'none';
-  feedTopicTabs.style.display = 'flex';
-  createPostBtn.style.display = currentUser ? 'flex' : 'none';
-  } else {
-  feedSort.style.display = 'flex';
-  feedLanguageTabs.style.display = 'none';
-  feedActivityTabs.style.display = 'none';
-  feedTopicTabs.style.display = 'none';
-  createPostBtn.style.display = 'none';
-  }
-  }
-
-// Render posts
-function renderPosts() {
-  const filtered = getFilteredPosts();
-
-  if (filtered.length === 0) {
-    postsContainer.innerHTML = `
-      <div class="empty-state">
-        <h3>No posts found</h3>
-        <p>Try adjusting your filters or search query.</p>
-      </div>
-    `;
-    return;
-  }
-
-postsContainer.innerHTML = filtered.map(createPostCard).join('');
-  
-  // Add like button listeners
-  document.querySelectorAll('.post-card .like-btn').forEach(btn => {
-  btn.addEventListener('click', handleLikeClick);
-  });
-  
-  // Add save button listeners
-  document.querySelectorAll('.post-card .save-btn').forEach(btn => {
-  btn.addEventListener('click', handleSaveClick);
-  });
-  
-  // Add comments button listeners - clicking comment count opens detail
-  document.querySelectorAll('.post-card .comments-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const postId = parseInt(btn.closest('.post-card').dataset.postId);
-  openPostDetail(postId);
-  });
-  });
-
-  // Add clickable author handlers
-  document.querySelectorAll('.clickable-author').forEach(el => {
-  el.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const author = el.dataset.author;
-  const nationality = el.dataset.nationality;
-  // Don't open own profile - go to My Page instead
-  if (currentUser && (author === currentUser.nickname || author === currentUser.name)) {
-  openMyPage();
-  } else {
-  openUserProfile(author, nationality);
-  }
-  });
-  });
-  
-  // Add post card click listeners for opening detail view
-  document.querySelectorAll('.post-card').forEach(card => {
-  const postId = parseInt(card.dataset.postId);
-  
-  card.addEventListener('click', (e) => {
-  // Block like buttons, save buttons, author clicks, and kebab menu
-  if (e.target.closest('.like-btn') || e.target.closest('.save-btn') || e.target.closest('.clickable-author') || e.target.closest('.kebab-menu-container')) {
-  return;
-  }
-  openPostDetail(postId);
-  });
-    
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openPostDetail(postId);
-      }
-    });
-  });
-  
-  // Setup kebab menu handlers for post cards
-  setupKebabMenuHandlers();
-}
-
-// Handle vote clicks
-function handleVote(e) {
-  e.stopPropagation();
-  const btn = e.currentTarget;
-  const isUpvote = btn.classList.contains('upvote');
-  const voteSection = btn.closest('.vote-section');
-  const otherBtn = isUpvote 
-    ? voteSection.querySelector('.downvote') 
-    : voteSection.querySelector('.upvote');
-
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-  } else {
-    btn.classList.add('active');
-    otherBtn.classList.remove('active');
-  }
-}
-
-// Handle like button clicks
-function handleLikeClick(e) {
-  e.stopPropagation();
-  const btn = e.currentTarget;
-  const postId = parseInt(btn.dataset.postId);
-  const newState = toggleLike(postId);
-  
-  // Update UI
-  btn.classList.toggle('liked', newState.liked);
-  const svg = btn.querySelector('svg');
-  svg.setAttribute('fill', newState.liked ? 'currentColor' : 'none');
-  btn.querySelector('.like-count').textContent = newState.count;
-}
-
-  // Handle save button clicks
-  function handleSaveClick(e) {
-  e.stopPropagation();
-  const btn = e.currentTarget;
-  const postId = parseInt(btn.dataset.postId);
-  const isSaved = toggleSavePost(postId);
-  if (isSaved === false && !currentUser) return; // User not logged in
-  
-  // Update UI
-  btn.classList.toggle('saved', isSaved);
-  const svg = btn.querySelector('svg');
-  svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
-  
-  // Update text label
-  const textSpan = btn.querySelector('.save-text');
-  if (textSpan) {
-    textSpan.textContent = isSaved ? 'Saved' : 'Save';
-  }
-  
-  showToast(isSaved ? 'Post saved' : 'Post unsaved');
-  }
 
 // Handle category selection
 function handleCategoryClick(e) {
   const navItem = e.currentTarget;
   const category = navItem.dataset.category;
+  
+  // Track if we need to push a new feed state (when leaving detail/profile views)
+  const needsHistoryPush = isDetailView || isMyPageView;
 
   // If in detail view, close it first
   if (isDetailView) {
@@ -2624,26 +2301,32 @@ function handleCategoryClick(e) {
     viewingUser = null;
     feedHeader.style.display = 'flex';
   }
+  
+  // Push new feed state to history when navigating away from detail/profile views
+  // This ensures Back button returns to the correct previous screen
+  if (needsHistoryPush) {
+    history.pushState({ view: 'feed' }, '', window.location.pathname);
+  }
 
-navItems.forEach(item => item.classList.remove('active'));
+  navItems.forEach(item => item.classList.remove('active'));
   navItem.classList.add('active');
   
   currentCategory = category;
   feedTitle.textContent = categoryNames[category];
   
   if (languageFilterCategories.includes(category)) {
-  currentLanguage = 'English';
-  langTabs.forEach(tab => {
-  tab.classList.toggle('active', tab.dataset.lang === 'English');
-  });
+    currentLanguage = 'English';
+    langTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.lang === 'English');
+    });
   }
   
   // Reset topic filter when switching to free-board
   if (category === 'free-board') {
-  currentTopic = 'all';
-  topicTabs.forEach(tab => {
-  tab.classList.toggle('active', tab.dataset.topic === 'all');
-  });
+    currentTopic = 'all';
+    topicTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.topic === 'all');
+    });
   }
   
   updateFeedTabs();
@@ -2655,10 +2338,10 @@ navItems.forEach(item => item.classList.remove('active'));
 function handleSortClick(e) {
   const btn = e.currentTarget;
   const sort = btn.dataset.sort;
-
+  
   sortButtons.forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-
+  
   currentSort = sort;
   renderPosts();
 }
@@ -2667,10 +2350,10 @@ function handleSortClick(e) {
 function handleLanguageTabClick(e) {
   const tab = e.currentTarget;
   const lang = tab.dataset.lang;
-
+  
   langTabs.forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
-
+  
   currentLanguage = lang;
   renderPosts();
 }
@@ -2678,17 +2361,17 @@ function handleLanguageTabClick(e) {
 // Handle activity tab selection
 function handleActivityTabClick(e) {
   const tab = e.currentTarget;
-  const activity = tab.dataset.activity;
-
+  const type = tab.dataset.type;
+  
   activityTabs.forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
   
-  currentActivityType = activity;
+  currentActivityType = type;
   renderPosts();
-  }
-  
-  // Handle topic tab selection (Free Board)
-  function handleTopicTabClick(e) {
+}
+
+// Handle topic tab selection
+function handleTopicTabClick(e) {
   const tab = e.currentTarget;
   const topic = tab.dataset.topic;
   
@@ -2697,36 +2380,15 @@ function handleActivityTabClick(e) {
   
   currentTopic = topic;
   renderPosts();
-  }
-  
-  // Handle search
+}
+
+// Handle search
 function handleSearch(e) {
-  searchQuery = e.target.value;
-  
-  // If in detail view, close it first
-  if (isDetailView) {
-    isDetailView = false;
-    currentPostId = null;
-    feedHeader.style.display = 'flex';
-  }
-  
+  searchQuery = e.target.value.trim();
   renderPosts();
 }
 
-// Mobile sidebar functions
-function openMobileSidebar() {
-  leftSidebar.classList.add('active');
-  sidebarOverlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeMobileSidebar() {
-  leftSidebar.classList.remove('active');
-  sidebarOverlay.classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-// Event Listeners
+// Event Listeners for navigation
 navItems.forEach(item => {
   item.addEventListener('click', handleCategoryClick);
 });
@@ -2739,49 +2401,19 @@ langTabs.forEach(tab => {
   tab.addEventListener('click', handleLanguageTabClick);
 });
 
-  activityTabs.forEach(tab => {
+activityTabs.forEach(tab => {
   tab.addEventListener('click', handleActivityTabClick);
-  });
-  
-  topicTabs.forEach(tab => {
+});
+
+topicTabs.forEach(tab => {
   tab.addEventListener('click', handleTopicTabClick);
-  });
-  
-  searchInput.addEventListener('input', handleSearch);
+});
+
+searchInput.addEventListener('input', handleSearch);
 
 mobileMenuBtn.addEventListener('click', openMobileSidebar);
 closeSidebarBtn.addEventListener('click', closeMobileSidebar);
 sidebarOverlay.addEventListener('click', closeMobileSidebar);
-  
-  // Logo click - return to homepage feed
-const logoLink = document.getElementById('logoLink');
-logoLink.addEventListener('click', (e) => {
-  e.preventDefault();
-  // Reset state to defaults
-  currentCategory = 'all';
-  currentSort = 'hot';
-  currentLanguage = 'English';
-  currentActivityType = 'Running';
-  searchQuery = '';
-  searchInput.value = '';
-isDetailView = false;
-  isMyPageView = false;
-  currentPostId = null;
-  viewingUser = null;
-  
-  // Update UI
-  navItems.forEach(item => {
-  item.classList.toggle('active', item.dataset.category === 'all');
-  });
-  sortButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sort === 'hot');
-  });
-  feedTitle.textContent = 'All Posts';
-  feedHeader.style.display = 'flex';
-  updateFeedTabs();
-  renderPosts();
-  window.scrollTo(0, 0);
-});
 
 // Create Post Modal Functions
 function openCreatePostModal() {
@@ -3083,11 +2715,11 @@ function handleEditPostSubmit(e) {
   
   closeEditPostModal();
   
-  // Re-render appropriate view
+// Re-render appropriate view (skipHistory=true to avoid duplicate history entry)
   if (isDetailView) {
-    openPostDetail(postId);
+  openPostDetail(postId, true);
   } else {
-    renderPosts();
+  renderPosts();
   }
   
   showToast('Post updated successfully');
@@ -3174,8 +2806,8 @@ function deleteComment(postId, commentIndex) {
     }
   }
   
-  // Re-render detail view
-  openPostDetail(postId);
+  // Re-render detail view (skipHistory=true to avoid duplicate history entry)
+  openPostDetail(postId, true);
   showToast('Comment deleted successfully');
   
   // TODO: API integration
@@ -3226,8 +2858,8 @@ function saveCommentEdit(postId, commentIndex, newText) {
     localStorage.setItem('postComments', JSON.stringify(allComments));
   }
   
-  // Re-render
-  openPostDetail(postId);
+  // Re-render (skipHistory=true to avoid duplicate history entry)
+  openPostDetail(postId, true);
   showToast('Comment updated successfully');
   
   // TODO: API integration
