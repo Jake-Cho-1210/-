@@ -510,7 +510,8 @@ let currentPostId = null;
 let feedScrollPosition = 0;
 let savedFeedState = null;
 let isDetailView = false;
-let isMyPageView = false;
+  let isMyPageView = false;
+  let returnToPostId = null; // Track post to return to when navigating back from user profile
 
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
@@ -1580,6 +1581,14 @@ function closeUserProfile() {
   viewingUser = null;
   isMyPageView = false;
   
+  // Check if we should return to a post detail view
+  if (returnToPostId !== null) {
+    const postIdToReturn = returnToPostId;
+    returnToPostId = null; // Clear the return state
+    openPostDetail(postIdToReturn);
+    return;
+  }
+  
   // Show the feed header again
   feedHeader.style.display = 'flex';
   
@@ -1916,19 +1925,21 @@ ${comments.length} Comments
   
   // Add clickable author handlers for post author and comment authors
   document.querySelectorAll('.clickable-author').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const author = el.dataset.author;
-      const nationality = el.dataset.nationality;
-      // Don't open own profile - go to My Page instead
-      if (currentUser && (author === currentUser.nickname || author === currentUser.name)) {
-        closePostDetail();
-        openMyPage();
-      } else {
-        closePostDetail();
-        openUserProfile(author, nationality);
-      }
-    });
+  el.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const author = el.dataset.author;
+  const nationality = el.dataset.nationality;
+  // Don't open own profile - go to My Page instead
+  if (currentUser && (author === currentUser.nickname || author === currentUser.name)) {
+  closePostDetail();
+  openMyPage();
+  } else {
+  // Store postId to return to when closing user profile
+  returnToPostId = postId;
+  closePostDetail();
+  openUserProfile(author, nationality);
+  }
+  });
   });
   
   // Setup kebab menu handlers for post and comments
@@ -2382,6 +2393,9 @@ function handleCategoryClick(e) {
     feedHeader.style.display = 'flex';
   }
 
+  // Clear return-to-post state when explicitly navigating to a category
+  returnToPostId = null;
+  
   navItems.forEach(item => item.classList.remove('active'));
   navItem.classList.add('active');
 
@@ -2527,6 +2541,7 @@ logoLink.addEventListener('click', (e) => {
   isDetailView = false;
   isMyPageView = false;
   currentPostId = null;
+  returnToPostId = null;
   
   // Update UI
   navItems.forEach(item => {
