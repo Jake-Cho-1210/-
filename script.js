@@ -512,9 +512,8 @@ let savedFeedState = null;
 let isDetailView = false;
   let isMyPageView = false;
   let returnToPostId = null; // Track post to return to when navigating back from user profile
-  let returnToProfile = null; // Track profile to return to when navigating back from post detail: 'mypage' | 'userprofile' | null
-  let returnToProfileUser = null; // Store the user data when returning to other user profile
-  let viewingUser = null; // Store the user being viewed in profile page
+  let returnToMyPage = false; // Track if we should return to My Page when closing post detail
+  let viewingUser = null; // Track user whose profile is being viewed
 
 // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
@@ -789,27 +788,27 @@ function openMyPage() {
 // Active profile tab state
 let activeProfileTab = 'edit';
 
-// Render content for profile tab
+// Render content for profile tabs
 function renderProfileTabContent(tab, postsSort = 'new') {
   if (tab === 'edit') {
     return `
       <form class="my-page-form" id="editProfileForm">
         <div class="form-group">
-          <label for="nicknameInput">Nickname *</label>
-          <input type="text" id="nicknameInput" value="${currentUser.nickname || currentUser.name}" required>
+          <label for="nicknameInput">Nickname (required)</label>
+          <input type="text" id="nicknameInput" class="form-input" value="${currentUser.nickname || currentUser.name}" required>
           <div class="form-error" id="editNicknameError" style="display: none;">Nickname is required</div>
         </div>
         <div class="form-group">
-          <label for="profileNameInput">Name ${currentUser.nameChangedOnce ? '(cannot be changed again)' : ''}</label>
-          <input type="text" id="profileNameInput" value="${currentUser.name}" ${currentUser.nameChangedOnce ? 'disabled' : ''}>
+          <label for="profileNameInput">Name ${currentUser.nameChangedOnce ? '(cannot be changed again)' : '(can be changed once)'}</label>
+          <input type="text" id="profileNameInput" class="form-input" value="${currentUser.name}" ${currentUser.nameChangedOnce ? 'disabled' : ''}>
         </div>
         <div class="form-group">
           <label for="ageInput">Age</label>
-          <input type="number" id="ageInput" value="${currentUser.age || ''}" min="1" max="120">
+          <input type="number" id="ageInput" class="form-input" value="${currentUser.age || ''}" min="1" max="120">
         </div>
         <div class="form-group">
-          <label for="nationalityEditSelect">Nationality ${currentUser.nationalityChangedOnce ? '(cannot be changed again)' : ''}</label>
-          <select id="nationalityEditSelect" ${currentUser.nationalityChangedOnce ? 'disabled' : ''}>
+          <label for="nationalityEditSelect">Nationality ${currentUser.nationalityChangedOnce ? '(cannot be changed again)' : '(can be changed once)'}</label>
+          <select id="nationalityEditSelect" class="form-input" ${currentUser.nationalityChangedOnce ? 'disabled' : ''}>
             <option value="">Select nationality</option>
             <option value="US" ${currentUser.nationality === 'US' ? 'selected' : ''}>United States</option>
             <option value="GB" ${currentUser.nationality === 'GB' ? 'selected' : ''}>United Kingdom</option>
@@ -818,26 +817,28 @@ function renderProfileTabContent(tab, postsSort = 'new') {
             <option value="FR" ${currentUser.nationality === 'FR' ? 'selected' : ''}>France</option>
             <option value="DE" ${currentUser.nationality === 'DE' ? 'selected' : ''}>Germany</option>
             <option value="JP" ${currentUser.nationality === 'JP' ? 'selected' : ''}>Japan</option>
-            <option value="KR" ${currentUser.nationality === 'KR' ? 'selected' : ''}>Korea</option>
+            <option value="KR" ${currentUser.nationality === 'KR' ? 'selected' : ''}>South Korea</option>
+            <option value="CN" ${currentUser.nationality === 'CN' ? 'selected' : ''}>China</option>
+            <option value="ES" ${currentUser.nationality === 'ES' ? 'selected' : ''}>Spain</option>
+            <option value="IT" ${currentUser.nationality === 'IT' ? 'selected' : ''}>Italy</option>
+            <option value="RU" ${currentUser.nationality === 'RU' ? 'selected' : ''}>Russia</option>
           </select>
         </div>
         <div class="form-group">
           <label for="genderSelect">Gender</label>
-          <select id="genderSelect">
+          <select id="genderSelect" class="form-input">
             <option value="">Prefer not to say</option>
             <option value="male" ${currentUser.gender === 'male' ? 'selected' : ''}>Male</option>
             <option value="female" ${currentUser.gender === 'female' ? 'selected' : ''}>Female</option>
             <option value="other" ${currentUser.gender === 'other' ? 'selected' : ''}>Other</option>
           </select>
         </div>
-        <button type="submit" class="form-submit">Save changes</button>
+        <button type="submit" class="form-submit">Save Changes</button>
       </form>
     `;
   } else if (tab === 'posts') {
-    // Get posts by current user
     let userPosts = posts.filter(p => p.author === currentUser.nickname || p.author === currentUser.name);
     
-    // Sort posts by actual like counts
     if (postsSort === 'top') {
       userPosts = userPosts.sort((a, b) => getLikeState(b.id).count - getLikeState(a.id).count);
     } else {
@@ -869,7 +870,6 @@ function renderProfileTabContent(tab, postsSort = 'new') {
       `}
     `;
   } else if (tab === 'comments') {
-    // Get comments by current user
     const allPostComments = JSON.parse(localStorage.getItem('postComments') || '{}');
     let userComments = [];
     
@@ -882,12 +882,10 @@ function renderProfileTabContent(tab, postsSort = 'new') {
       }
     }
     
-    // Get commentsSort from second parameter
     const commentsSort = postsSort;
     
-    // Sort comments
     if (commentsSort === 'top') {
-      userComments = userComments.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      userComments = userComments.sort((a, b) => (getCommentLikeState(b.id || 0).count) - (getCommentLikeState(a.id || 0).count));
     } else {
       userComments = userComments.sort((a, b) => b.createdAt - a.createdAt);
     }
@@ -897,7 +895,7 @@ function renderProfileTabContent(tab, postsSort = 'new') {
         <button class="comments-sort-btn ${commentsSort === 'top' ? 'active' : ''}" data-sort="top">Top</button>
         <button class="comments-sort-btn ${commentsSort === 'new' ? 'active' : ''}" data-sort="new">New</button>
       </div>
-      ${userComments.length === 0 ? `<div class="empty-tab-message">No comments to show.</div>` : `
+      ${userComments.length === 0 ? `<div class="empty-tab-message">No comments yet.</div>` : `
         <div class="my-comments-list">
           ${userComments.map((c, idx) => {
             const likeState = getCommentLikeState(c.id || idx);
@@ -920,10 +918,181 @@ function renderProfileTabContent(tab, postsSort = 'new') {
       `}
     `;
   } else if (tab === 'saved') {
-    // TODO: Implement saved posts functionality when backend is available
-    return `<div class="empty-tab-message">Saved posts feature coming soon!</div>`;
+    const savedPosts = currentUser.savedPosts || [];
+    return `
+      ${savedPosts.length === 0 ? `<div class="empty-tab-message">No saved posts yet.</div>` : `
+        <div class="saved-posts-list">
+          ${savedPosts.map(postId => {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return '';
+            return `
+              <div class="saved-post-item" data-post-id="${postId}">
+                <div class="saved-post-title">${post.title}</div>
+                <div class="saved-post-meta">
+                  <span>${post.categoryLabel}</span>
+                  <span>${formatTimeAgo(post.createdAt)}</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    `;
   }
   return '';
+}
+
+// Remove avatar (reset to default)
+function removeAvatar() {
+  currentUser.profileImage = null;
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  renderProfileButton();
+  renderMyPageView(activeProfileTab);
+  showToast('Profile picture removed');
+}
+
+// Handle avatar file upload
+function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.');
+    return;
+  }
+  
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  if (file.size > MAX_SIZE) {
+    alert('Image size must be less than 5MB.');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    currentUser.profileImage = event.target.result;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    renderProfileButton();
+    renderMyPageView(activeProfileTab);
+    showToast('Profile picture updated');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Close avatar crop modal
+function closeAvatarCropModal() {
+  const modal = document.getElementById('avatarCropModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// Apply avatar crop
+function applyAvatarCrop() {
+  // Placeholder for crop functionality
+  closeAvatarCropModal();
+  showToast('Profile picture updated');
+}
+
+// Open other user's profile
+function openUserProfile(author, nationality) {
+  if (!author) return;
+  
+  feedScrollPosition = window.scrollY;
+  isMyPageView = true;
+  viewingUser = { nickname: author, nationality: nationality };
+  
+  feedHeader.style.display = 'none';
+  renderOtherUserProfile('posts', 'new');
+  window.scrollTo(0, 0);
+}
+
+// Render other user's profile view
+function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
+  if (!viewingUser) return;
+  
+  const flag = getFlagEmoji(viewingUser.nationality);
+  
+  postsContainer.innerHTML = `
+    <div class="my-page-view">
+      <button class="back-btn" id="backFromUserProfile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Back
+      </button>
+      
+      <div class="profile-header-row">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar-large">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+        </div>
+        <div class="profile-info">
+          <span class="profile-display-name">${flag} ${viewingUser.nickname}</span>
+        </div>
+      </div>
+      
+      <div class="profile-tabs">
+        <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
+        <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
+      </div>
+      
+      <div class="profile-tab-content" id="profileTabContent">
+        ${renderOtherUserTabContent(tab, postsSort)}
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('backFromUserProfile').addEventListener('click', closeUserProfile);
+  
+  document.querySelectorAll('.profile-tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      renderOtherUserProfile(tabBtn.dataset.tab);
+    });
+  });
+  
+  if (tab === 'posts') {
+    document.querySelectorAll('.posts-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sort = btn.dataset.sort;
+        renderOtherUserProfile('posts', sort);
+      });
+    });
+    document.querySelectorAll('.my-post-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeUserProfile();
+        openPostDetail(postId);
+      });
+    });
+  }
+  
+  if (tab === 'comments') {
+    document.querySelectorAll('.comments-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sort = btn.dataset.sort;
+        renderOtherUserProfile('comments', sort);
+      });
+    });
+    document.querySelectorAll('.comment-like-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleCommentLikeClick(btn);
+      });
+    });
+    document.querySelectorAll('.my-comment-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const postId = parseInt(item.dataset.postId);
+        closeUserProfile();
+        openPostDetail(postId);
+      });
+    });
+  }
 }
 
 // Render My Page view with tabs
@@ -1087,14 +1256,13 @@ if (tab === 'comments') {
     });
   });
   // Click to view post
-  document.querySelectorAll('.my-comment-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const postId = parseInt(item.dataset.postId);
-      // Set return state to come back to My Page
-      returnToProfile = 'mypage';
-      closeMyPage();
-      openPostDetail(postId);
-    });
+document.querySelectorAll('.my-comment-item').forEach(item => {
+  item.addEventListener('click', () => {
+  const postId = parseInt(item.dataset.postId);
+  returnToMyPage = true; // Set flag to return to My Page on back
+  closeMyPage();
+  openPostDetail(postId);
+  });
   });
   }
   if (tab === 'posts') {
@@ -1111,8 +1279,7 @@ if (tab === 'comments') {
 document.querySelectorAll('.my-post-item').forEach(item => {
   item.addEventListener('click', () => {
   const postId = parseInt(item.dataset.postId);
-  // Set return state to come back to My Page
-  returnToProfile = 'mypage';
+  returnToMyPage = true; // Set flag to return to My Page on back
   closeMyPage();
   openPostDetail(postId);
   });
@@ -1139,9 +1306,6 @@ document.querySelectorAll('.my-post-item').forEach(item => {
   document.querySelectorAll('.my-comment-item').forEach(item => {
     item.addEventListener('click', () => {
       const postId = parseInt(item.dataset.postId);
-      // Set return state to come back to user profile
-      returnToProfile = 'userprofile';
-      returnToProfileUser = viewingUser;
       closeUserProfile();
       openPostDetail(postId);
     });
@@ -1149,138 +1313,6 @@ document.querySelectorAll('.my-post-item').forEach(item => {
   }
   }
   
-// Open another user's profile
-function openUserProfile(nickname, nationality) {
-  // Create a mock user object for the profile being viewed
-  viewingUser = {
-    nickname: nickname,
-    nationality: nationality,
-    followers: Math.floor(Math.random() * 200),
-    following: Math.floor(Math.random() * 100)
-  };
-  
-  // Save scroll position
-  feedScrollPosition = window.scrollY;
-  isMyPageView = true; // Reuse same layout state
-  isDetailView = false;
-  
-  // Hide the feed header
-  feedHeader.style.display = 'none';
-  
-  renderOtherUserProfile('posts');
-  
-  window.scrollTo(0, 0);
-}
-
-// Render another user's profile view
-function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
-  if (!viewingUser) return;
-  
-  const flag = getFlagEmoji(viewingUser.nationality);
-  
-  postsContainer.innerHTML = `
-    <div class="my-page-view">
-      <button class="back-btn" id="backFromUserProfile">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        Back
-      </button>
-      
-      <!-- Profile Header -->
-      <div class="profile-header-row">
-        <div class="profile-avatar-wrapper">
-          <div class="profile-avatar-large">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-        </div>
-        <div class="profile-info">
-          <span class="profile-display-name">${flag} ${viewingUser.nickname}</span>
-          <div class="profile-stats-inline">
-            <span class="profile-stat-item">Following <strong>${viewingUser.following || 0}</strong></span>
-            <span class="profile-stat-item">Followers <strong>${viewingUser.followers || 0}</strong></span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Profile Tabs -->
-      <div class="profile-tabs">
-        <button class="profile-tab ${tab === 'posts' ? 'active' : ''}" data-tab="posts">Posts</button>
-        <button class="profile-tab ${tab === 'comments' ? 'active' : ''}" data-tab="comments">Comments</button>
-      </div>
-      
-      <!-- Tab Content -->
-      <div class="profile-tab-content" id="profileTabContent">
-        ${renderOtherUserTabContent(tab, postsSort)}
-      </div>
-    </div>
-  `;
-  
-  // Add event listeners
-  document.getElementById('backFromUserProfile').addEventListener('click', closeUserProfile);
-  
-  // Tab switching
-  document.querySelectorAll('.profile-tab').forEach(tabBtn => {
-    tabBtn.addEventListener('click', () => {
-      renderOtherUserProfile(tabBtn.dataset.tab);
-    });
-  });
-  
-  if (tab === 'posts') {
-    // Posts tab sorting
-    document.querySelectorAll('.posts-sort-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sort = btn.dataset.sort;
-        renderOtherUserProfile('posts', sort);
-      });
-    });
-    // Click to view post
-    document.querySelectorAll('.my-post-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const postId = parseInt(item.dataset.postId);
-        // Set return state to come back to user profile
-        returnToProfile = 'userprofile';
-        returnToProfileUser = viewingUser;
-        closeUserProfile();
-        openPostDetail(postId);
-      });
-    });
-  }
-  if (tab === 'comments') {
-    // Comments tab sorting
-    document.querySelectorAll('.comments-sort-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sort = btn.dataset.sort;
-        renderOtherUserProfile('comments', sort);
-      });
-    });
-    // Comment like buttons
-    document.querySelectorAll('.comment-like-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleCommentLikeClick(btn);
-      });
-    });
-    // Click to view post
-    document.querySelectorAll('.my-comment-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const postId = parseInt(item.dataset.postId);
-        returnToProfile = 'userprofile';
-        returnToProfileUser = viewingUser;
-        closeUserProfile();
-        openPostDetail(postId);
-      });
-    });
-  }
-}
-
   // Render content for other user's profile tabs
   function renderOtherUserTabContent(tab, postsSort = 'new') {
   if (tab === 'posts') {
@@ -1787,23 +1819,12 @@ function closePostDetail() {
   isDetailView = false;
   currentPostId = null;
   
-  // Check if we should return to a profile page
-  if (returnToProfile === 'mypage') {
-    returnToProfile = null;
-    returnToProfileUser = null;
+  // Check if we should return to My Page
+  if (returnToMyPage) {
+    returnToMyPage = false;
     openMyPage();
     return;
-  } else if (returnToProfile === 'userprofile' && returnToProfileUser) {
-    const userToReturn = returnToProfileUser;
-    returnToProfile = null;
-    returnToProfileUser = null;
-    openUserProfile(userToReturn.nickname, userToReturn.nationality);
-    return;
   }
-  
-  // Clear return state
-  returnToProfile = null;
-  returnToProfileUser = null;
   
   // Restore saved feed state if available
   if (savedFeedState) {
@@ -1917,6 +1938,7 @@ const comment = {
   id: Date.now(),
   postId: postId,
   author: currentUser.nickname || currentUser.name,
+  authorId: currentUser.id, // Store authorId for reliable ownership detection
   authorNationality: currentUser.nationality,
   text: text,
   createdAt: Date.now(),
@@ -2244,14 +2266,13 @@ function handleCategoryClick(e) {
     feedHeader.style.display = 'flex';
   }
 
-  // Clear return states when explicitly navigating to a category
+// Clear return states when explicitly navigating to a category
   returnToPostId = null;
-  returnToProfile = null;
-  returnToProfileUser = null;
+  returnToMyPage = false;
   
   navItems.forEach(item => item.classList.remove('active'));
   navItem.classList.add('active');
-
+  
   currentCategory = category;
   feedTitle.textContent = categoryNames[category];
   
@@ -2395,8 +2416,7 @@ isDetailView = false;
   isMyPageView = false;
   currentPostId = null;
   returnToPostId = null;
-  returnToProfile = null;
-  returnToProfileUser = null;
+  returnToMyPage = false;
 
   // Update UI
   navItems.forEach(item => {
@@ -2495,7 +2515,7 @@ function createNewPost(title, content, topic, imageUrl) {
   category: 'free-board',
   categoryLabel: 'Travexlo Lounge',
   author: currentUser.nickname || currentUser.name,
-  authorId: currentUser.id, // Store author ID for reliable ownership detection
+  authorId: currentUser.id, // Store authorId for reliable ownership detection
   authorNationality: currentUser.nationality,
   createdAt: Date.now(),
   likes: 0,
@@ -2568,16 +2588,13 @@ authForm.addEventListener('submit', handleAuthSubmit);
   });
   document.getElementById('postImageInput').addEventListener('change', handlePostImageUpload);
   
-  // Avatar crop modal event listeners (if modal exists in DOM)
-  const avatarCropModalEl = document.getElementById('avatarCropModal');
-  if (avatarCropModalEl) {
-    document.getElementById('closeAvatarCropModal')?.addEventListener('click', closeAvatarCropModal);
-    document.getElementById('cancelAvatarCrop')?.addEventListener('click', closeAvatarCropModal);
-    document.getElementById('applyAvatarCrop')?.addEventListener('click', applyAvatarCrop);
-    avatarCropModalEl.addEventListener('click', (e) => {
-      if (e.target.id === 'avatarCropModal') closeAvatarCropModal();
-    });
-  }
+  // Avatar crop modal event listeners
+  document.getElementById('closeAvatarCropModal').addEventListener('click', closeAvatarCropModal);
+  document.getElementById('cancelAvatarCrop').addEventListener('click', closeAvatarCropModal);
+  document.getElementById('applyAvatarCrop').addEventListener('click', applyAvatarCrop);
+  document.getElementById('avatarCropModal').addEventListener('click', (e) => {
+  if (e.target.id === 'avatarCropModal') closeAvatarCropModal();
+  });
   
   // Click outside handler (user menu removed)
 
@@ -2955,21 +2972,13 @@ init();
 // Check if current user is the owner of a post
 function isPostOwner(post) {
   if (!currentUser || !post) return false;
-  
-  // Primary check: use authorId if available (most reliable)
+  // Primary check: use authorId for reliable ownership (survives nickname changes)
   if (post.authorId && currentUser.id) {
     return String(post.authorId) === String(currentUser.id);
   }
-  
-  // Fallback: check by nickname and name (for backwards compatibility)
-  const userNickname = currentUser.nickname;
-  const userName = currentUser.name;
-  
-  // Check if post author matches current user's nickname or name
-  if (userNickname && post.author === userNickname) return true;
-  if (userName && post.author === userName) return true;
-  
-  return false;
+  // Fallback for existing posts without authorId (mock data)
+  const userIdentifier = currentUser.nickname || currentUser.name;
+  return post.author === userIdentifier;
   }
 
 // Convert ISO 3166-1 alpha-2 country code to flag emoji
@@ -2995,8 +3004,13 @@ function getDisplayNameWithFlag(user) {
 // Check if current user owns a comment
 function isCommentOwner(comment) {
   if (!currentUser || !comment) return false;
+  // Primary check: use authorId for reliable ownership (survives nickname changes)
+  if (comment.authorId && currentUser.id) {
+    return String(comment.authorId) === String(currentUser.id);
+  }
+  // Fallback for existing comments without authorId
   return comment.author === currentUser.nickname || comment.author === currentUser.name;
-}
+  }
 
 function formatAuthorDisplay(author, nationality, clickable = true) {
   if (!author) return '';
@@ -3142,72 +3156,6 @@ function loadUserPosts() {
       }
     }
   }
-}
-
-// ============================================
-// AVATAR MANAGEMENT
-// ============================================
-
-// Handle avatar file upload
-function handleAvatarUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file.');
-    return;
-  }
-  
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-  if (file.size > MAX_SIZE) {
-    alert('Image size must be less than 5MB.');
-    return;
-  }
-  
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    // For now, directly set the avatar without crop modal
-    // TODO: Implement crop modal if needed
-    currentUser.profileImage = event.target.result;
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    renderProfileButton();
-    
-    // Re-render My Page to show updated avatar
-    if (isMyPageView) {
-      renderMyPageView(activeProfileTab);
-    }
-    
-    showToast('Profile picture updated successfully');
-  };
-  reader.readAsDataURL(file);
-}
-
-// Remove avatar and reset to default
-function removeAvatar() {
-  currentUser.profileImage = null;
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-  renderProfileButton();
-  
-  // Re-render My Page to show default avatar
-  if (isMyPageView) {
-    renderMyPageView(activeProfileTab);
-  }
-  
-  showToast('Profile picture removed');
-}
-
-// Close avatar crop modal
-function closeAvatarCropModal() {
-  const modal = document.getElementById('avatarCropModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
-// Apply cropped avatar
-function applyAvatarCrop() {
-  // TODO: Implement actual crop logic when crop modal is added
-  closeAvatarCropModal();
 }
   
   function saveVoteState(postId, userVote, voteCount) {
