@@ -1741,14 +1741,51 @@ function openPostDetail(postId) {
     : '';
   
   const commentsHTML = comments.length > 0
-    ? comments.map(c => `
-      <div class="comment-item">
+    ? comments.map((c, index) => `
+      <div class="comment-item" data-comment-index="${index}" data-post-id="${postId}">
+        ${currentUser ? `
+        <div class="kebab-menu-container">
+          <button class="kebab-menu-btn comment-menu-btn" data-comment-index="${index}" aria-label="Comment options">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="2"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="12" cy="19" r="2"></circle>
+            </svg>
+          </button>
+          <div class="kebab-menu comment-menu" data-comment-index="${index}">
+            ${isCommentOwner(c) ? `
+              <button class="kebab-menu-item" data-action="edit-comment" data-comment-index="${index}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit
+              </button>
+              <button class="kebab-menu-item danger" data-action="delete-comment" data-comment-index="${index}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete
+              </button>
+            ` : `
+              <button class="kebab-menu-item" data-action="report-comment" data-comment-index="${index}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                  <line x1="4" y1="22" x2="4" y2="15"></line>
+                </svg>
+                Report
+              </button>
+            `}
+          </div>
+        </div>
+        ` : ''}
         <div class="comment-meta">
           ${formatAuthorDisplay(c.author, c.authorNationality)}
           <span>•</span>
           <span>${formatCommentTime(c.createdAt)}</span>
         </div>
-        <p class="comment-text">${c.text}</p>
+        <p class="comment-text" data-comment-index="${index}">${c.text}</p>
       </div>
     `).join('')
     : '<p class="no-comments">No comments yet. Be the first to comment!</p>';
@@ -1777,6 +1814,43 @@ function openPostDetail(postId) {
             </button>
           </div>
           <div class="post-detail-main">
+            ${currentUser ? `
+            <div class="kebab-menu-container">
+              <button class="kebab-menu-btn" data-post-id="${post.id}" aria-label="Post options">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="5" r="2"></circle>
+                  <circle cx="12" cy="12" r="2"></circle>
+                  <circle cx="12" cy="19" r="2"></circle>
+                </svg>
+              </button>
+              <div class="kebab-menu" data-post-id="${post.id}">
+                ${isPostOwner(post) ? `
+                  <button class="kebab-menu-item" data-action="edit" data-post-id="${post.id}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Edit
+                  </button>
+                  <button class="kebab-menu-item danger" data-action="delete" data-post-id="${post.id}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Delete
+                  </button>
+                ` : `
+                  <button class="kebab-menu-item" data-action="report" data-post-id="${post.id}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                      <line x1="4" y1="22" x2="4" y2="15"></line>
+                    </svg>
+                    Report
+                  </button>
+                `}
+              </div>
+            </div>
+            ` : ''}
             <div class="post-detail-meta">
 <span class="post-category">${post.categoryLabel}</span>
   <span>Posted by</span>
@@ -1856,6 +1930,9 @@ ${comments.length} Comments
       }
     });
   });
+  
+  // Setup kebab menu handlers for post and comments
+  setupKebabMenuHandlers();
 }
 
 // Handle like in detail view
@@ -2035,6 +2112,43 @@ function createPostCard(post) {
         </button>
       </div>
       <div class="post-content">
+        ${currentUser ? `
+        <div class="kebab-menu-container">
+          <button class="kebab-menu-btn" data-post-id="${post.id}" aria-label="Post options">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="2"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="12" cy="19" r="2"></circle>
+            </svg>
+          </button>
+          <div class="kebab-menu" data-post-id="${post.id}">
+            ${isPostOwner(post) ? `
+              <button class="kebab-menu-item" data-action="edit" data-post-id="${post.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit
+              </button>
+              <button class="kebab-menu-item danger" data-action="delete" data-post-id="${post.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete
+              </button>
+            ` : `
+              <button class="kebab-menu-item" data-action="report" data-post-id="${post.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                  <line x1="4" y1="22" x2="4" y2="15"></line>
+                </svg>
+                Report
+              </button>
+            `}
+          </div>
+        </div>
+        ` : ''}
         <div class="post-meta">
 <span class="post-category">${post.categoryLabel}</span>
   <span>Posted by</span>
@@ -2206,7 +2320,7 @@ function renderPosts() {
   
   card.addEventListener('click', (e) => {
   // Block vote, like buttons, and author clicks
-  if (e.target.closest('.vote-btn') || e.target.closest('.like-btn') || e.target.closest('.clickable-author')) {
+  if (e.target.closest('.vote-btn') || e.target.closest('.like-btn') || e.target.closest('.clickable-author') || e.target.closest('.kebab-menu-container')) {
   return;
   }
   openPostDetail(postId);
@@ -2219,6 +2333,9 @@ function renderPosts() {
       }
     });
   });
+  
+  // Setup kebab menu handlers for post cards
+  setupKebabMenuHandlers();
 }
 
 // Handle vote clicks
@@ -2584,11 +2701,355 @@ authForm.addEventListener('submit', handleAuthSubmit);
   
   // Click outside handler (user menu removed)
 
+// ============================================
+// POST/COMMENT ACTIONS (Edit, Delete, Report)
+// ============================================
+
+// State for actions
+let currentReportType = null; // 'post' or 'comment'
+let currentReportId = null;
+let currentDeleteType = null; // 'post' or 'comment'
+let currentDeleteId = null;
+let currentDeletePostId = null; // For comments, track which post they belong to
+
+// Show toast notification
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+// Close all kebab menus
+function closeAllKebabMenus() {
+  document.querySelectorAll('.kebab-menu.active').forEach(menu => {
+    menu.classList.remove('active');
+  });
+}
+
+// Toggle kebab menu
+function toggleKebabMenu(btn) {
+  const menu = btn.nextElementSibling;
+  const isActive = menu.classList.contains('active');
+  closeAllKebabMenus();
+  if (!isActive) {
+    menu.classList.add('active');
+  }
+}
+
+// Close kebab menus when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.kebab-menu-container')) {
+    closeAllKebabMenus();
+  }
+});
+
+// Setup kebab menu handlers (called after rendering posts/comments)
+function setupKebabMenuHandlers() {
+  // Kebab button toggles
+  document.querySelectorAll('.kebab-menu-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleKebabMenu(btn);
+    });
+  });
+  
+  // Menu item actions
+  document.querySelectorAll('.kebab-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = item.dataset.action;
+      const postId = item.dataset.postId ? parseInt(item.dataset.postId) : null;
+      const commentIndex = item.dataset.commentIndex !== undefined ? parseInt(item.dataset.commentIndex) : null;
+      
+      closeAllKebabMenus();
+      
+      switch (action) {
+        case 'edit':
+          openEditPostModal(postId);
+          break;
+        case 'delete':
+          openDeleteConfirmation('post', postId);
+          break;
+        case 'report':
+          openReportModal('post', postId);
+          break;
+        case 'edit-comment':
+          startCommentEdit(commentIndex);
+          break;
+        case 'delete-comment':
+          const commentPostId = item.closest('.comment-item').dataset.postId;
+          openDeleteConfirmation('comment', commentIndex, parseInt(commentPostId));
+          break;
+        case 'report-comment':
+          openReportModal('comment', commentIndex);
+          break;
+      }
+    });
+  });
+}
+
+// ---- EDIT POST ----
+function openEditPostModal(postId) {
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  
+  document.getElementById('editPostId').value = postId;
+  document.getElementById('editPostTitleInput').value = post.title;
+  document.getElementById('editPostContentInput').value = post.content;
+  document.getElementById('editPostModal').style.display = 'flex';
+}
+
+function closeEditPostModal() {
+  document.getElementById('editPostModal').style.display = 'none';
+  document.getElementById('editPostForm').reset();
+}
+
+function handleEditPostSubmit(e) {
+  e.preventDefault();
+  const postId = parseInt(document.getElementById('editPostId').value);
+  const newTitle = document.getElementById('editPostTitleInput').value.trim();
+  const newContent = document.getElementById('editPostContentInput').value.trim();
+  
+  if (!newTitle || !newContent) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+  
+  // Optimistic update
+  const postIndex = posts.findIndex(p => p.id === postId);
+  if (postIndex !== -1) {
+    posts[postIndex].title = newTitle;
+    posts[postIndex].content = newContent;
+    posts[postIndex].updatedAt = Date.now();
+  }
+  
+  closeEditPostModal();
+  
+  // Re-render appropriate view
+  if (isDetailView) {
+    openPostDetail(postId);
+  } else {
+    renderPosts();
+  }
+  
+  showToast('Post updated successfully');
+  
+  // TODO: API integration
+  // await fetch(`/api/posts/${postId}`, {
+  //   method: 'PUT',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({ title: newTitle, content: newContent })
+  // });
+}
+
+// ---- DELETE POST/COMMENT ----
+function openDeleteConfirmation(type, id, postId = null) {
+  currentDeleteType = type;
+  currentDeleteId = id;
+  currentDeletePostId = postId;
+  
+  const desc = document.getElementById('confirmDeleteDesc');
+  if (type === 'post') {
+    desc.textContent = 'Are you sure you want to delete this post? This action cannot be undone.';
+  } else {
+    desc.textContent = 'Are you sure you want to delete this comment? This action cannot be undone.';
+  }
+  
+  document.getElementById('confirmDeleteModal').style.display = 'flex';
+}
+
+function closeDeleteConfirmation() {
+  document.getElementById('confirmDeleteModal').style.display = 'none';
+  currentDeleteType = null;
+  currentDeleteId = null;
+  currentDeletePostId = null;
+}
+
+function handleConfirmDelete() {
+  if (currentDeleteType === 'post') {
+    deletePost(currentDeleteId);
+  } else if (currentDeleteType === 'comment') {
+    deleteComment(currentDeletePostId, currentDeleteId);
+  }
+  closeDeleteConfirmation();
+}
+
+function deletePost(postId) {
+  // Optimistic update - remove from array
+  const postIndex = posts.findIndex(p => p.id === postId);
+  if (postIndex !== -1) {
+    posts.splice(postIndex, 1);
+  }
+  
+  // Also remove from localStorage comments
+  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  delete allComments[postId];
+  localStorage.setItem('postComments', JSON.stringify(allComments));
+  
+  // If on detail view, go back to feed
+  if (isDetailView) {
+    closePostDetail();
+  } else {
+    renderPosts();
+  }
+  
+  showToast('Post deleted successfully');
+  
+  // TODO: API integration
+  // await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+}
+
+function deleteComment(postId, commentIndex) {
+  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  if (allComments[postId] && allComments[postId][commentIndex]) {
+    allComments[postId].splice(commentIndex, 1);
+    localStorage.setItem('postComments', JSON.stringify(allComments));
+    
+    // Update post comment count
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      post.comments = allComments[postId].length;
+    }
+  }
+  
+  // Re-render detail view
+  openPostDetail(postId);
+  showToast('Comment deleted successfully');
+  
+  // TODO: API integration
+  // await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+}
+
+// ---- EDIT COMMENT (inline) ----
+function startCommentEdit(commentIndex) {
+  const commentItem = document.querySelector(`.comment-item[data-comment-index="${commentIndex}"]`);
+  if (!commentItem) return;
+  
+  const textEl = commentItem.querySelector('.comment-text');
+  const originalText = textEl.textContent;
+  
+  textEl.innerHTML = `
+    <div class="comment-edit-form">
+      <textarea class="comment-edit-input">${originalText}</textarea>
+      <div class="comment-edit-actions">
+        <button class="comment-edit-cancel" data-comment-index="${commentIndex}" data-original="${originalText}">Cancel</button>
+        <button class="comment-edit-save" data-comment-index="${commentIndex}">Save</button>
+      </div>
+    </div>
+  `;
+  
+  // Focus the textarea
+  textEl.querySelector('.comment-edit-input').focus();
+  
+  // Cancel button
+  textEl.querySelector('.comment-edit-cancel').addEventListener('click', () => {
+    textEl.textContent = originalText;
+  });
+  
+  // Save button
+  textEl.querySelector('.comment-edit-save').addEventListener('click', () => {
+    const newText = textEl.querySelector('.comment-edit-input').value.trim();
+    if (!newText) return;
+    
+    const postId = parseInt(commentItem.dataset.postId);
+    saveCommentEdit(postId, commentIndex, newText);
+  });
+}
+
+function saveCommentEdit(postId, commentIndex, newText) {
+  const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+  if (allComments[postId] && allComments[postId][commentIndex]) {
+    allComments[postId][commentIndex].text = newText;
+    allComments[postId][commentIndex].updatedAt = Date.now();
+    localStorage.setItem('postComments', JSON.stringify(allComments));
+  }
+  
+  // Re-render
+  openPostDetail(postId);
+  showToast('Comment updated successfully');
+  
+  // TODO: API integration
+  // await fetch(`/api/comments/${commentId}`, {
+  //   method: 'PUT',
+  //   body: JSON.stringify({ text: newText })
+  // });
+}
+
+// ---- REPORT ----
+function openReportModal(type, id) {
+  currentReportType = type;
+  currentReportId = id;
+  document.getElementById('reportForm').reset();
+  document.getElementById('reportModal').style.display = 'flex';
+}
+
+function closeReportModal() {
+  document.getElementById('reportModal').style.display = 'none';
+  currentReportType = null;
+  currentReportId = null;
+}
+
+function handleReportSubmit(e) {
+  e.preventDefault();
+  const reason = document.getElementById('reportReasonSelect').value;
+  const details = document.getElementById('reportDetailsInput').value.trim();
+  
+  if (!reason) {
+    alert('Please select a reason for reporting.');
+    return;
+  }
+  
+  closeReportModal();
+  showToast('Report submitted. Thank you for helping keep our community safe.');
+  
+  // TODO: API integration
+  // const endpoint = currentReportType === 'post' ? '/api/reports/post' : '/api/reports/comment';
+  // await fetch(endpoint, {
+  //   method: 'POST',
+  //   body: JSON.stringify({
+  //     targetId: currentReportId,
+  //     reason,
+  //     details
+  //   })
+  // });
+}
+
+// Setup modal event listeners
+document.getElementById('closeEditPostModal')?.addEventListener('click', closeEditPostModal);
+document.getElementById('cancelEditPost')?.addEventListener('click', closeEditPostModal);
+document.getElementById('editPostForm')?.addEventListener('submit', handleEditPostSubmit);
+document.getElementById('editPostModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'editPostModal') closeEditPostModal();
+});
+
+document.getElementById('cancelDelete')?.addEventListener('click', closeDeleteConfirmation);
+document.getElementById('confirmDeleteBtn')?.addEventListener('click', handleConfirmDelete);
+document.getElementById('confirmDeleteModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'confirmDeleteModal') closeDeleteConfirmation();
+});
+
+document.getElementById('closeReportModal')?.addEventListener('click', closeReportModal);
+document.getElementById('cancelReport')?.addEventListener('click', closeReportModal);
+document.getElementById('reportForm')?.addEventListener('submit', handleReportSubmit);
+document.getElementById('reportModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'reportModal') closeReportModal();
+});
+
 // Handle escape key to close modals/sidebars
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeMobileSidebar();
     closeAuthModal();
+    closeAllKebabMenus();
+    closeEditPostModal();
+    closeDeleteConfirmation();
+    closeReportModal();
     if (isDetailView) {
       closePostDetail();
     }
@@ -2602,6 +3063,13 @@ if (isMyPageView) {
 init();
 
 // Helper functions declarations
+
+// Check if current user is the owner of a post
+function isPostOwner(post) {
+  if (!currentUser || !post) return false;
+  const userIdentifier = currentUser.nickname || currentUser.name;
+  return post.author === userIdentifier;
+}
 
 // Convert ISO 3166-1 alpha-2 country code to flag emoji
 function getFlagEmoji(countryCode) {
@@ -2623,6 +3091,12 @@ function getDisplayNameWithFlag(user) {
 }
 
 // Format author display with flag emoji: "FLAG AuthorName"
+// Check if current user owns a comment
+function isCommentOwner(comment) {
+  if (!currentUser || !comment) return false;
+  return comment.author === currentUser.nickname || comment.author === currentUser.name;
+}
+
 function formatAuthorDisplay(author, nationality, clickable = true) {
   if (!author) return '';
   const flag = nationality ? getFlagEmoji(nationality) : '';
