@@ -1868,7 +1868,6 @@ function openPostDetail(postId, skipHistory = false) {
   
   currentPostId = postId;
   isDetailView = true;
-  const voteState = getVoteState(postId);
   const likeState = getLikeState(postId);
   const comments = getComments(postId);
   
@@ -2234,33 +2233,6 @@ function restoreToFeed() {
   });
 }
 
-// Handle vote in detail view
-function handleDetailVote(postId, direction) {
-  const voteState = getVoteState(postId);
-  let newUserVote = voteState.userVote;
-  let newVoteCount = voteState.voteCount;
-  
-  if (voteState.userVote === direction) {
-    newUserVote = 0;
-    newVoteCount -= direction;
-  } else {
-    newVoteCount -= voteState.userVote;
-    newVoteCount += direction;
-    newUserVote = direction;
-  }
-  
-  saveVoteState(postId, newUserVote, newVoteCount);
-  
-  // Update UI
-  const upvoteBtn = postsContainer.querySelector('.vote-btn.upvote');
-  const downvoteBtn = postsContainer.querySelector('.vote-btn.downvote');
-  const voteCountEl = document.getElementById('detailVoteCount');
-  
-  upvoteBtn.classList.toggle('active', newUserVote === 1);
-  downvoteBtn.classList.toggle('active', newUserVote === -1);
-  voteCountEl.textContent = formatLikes(newVoteCount);
-}
-
 // Handle comment submit
 function handleCommentSubmit(postId) {
   const input = document.getElementById('commentInput');
@@ -2292,8 +2264,7 @@ const comment = {
 }
 
 // Create post card HTML
-function createPostCard(post) {
-  const voteState = getVoteState(post.id);
+  function createPostCard(post) {
   const likeState = getLikeState(post.id);
   const viewCount = getViewCount(post.id);
   const imageHTML = post.image 
@@ -2538,24 +2509,6 @@ postsContainer.innerHTML = filtered.map(createPostCard).join('');
   
   // Setup kebab menu handlers for post cards
   setupKebabMenuHandlers();
-}
-
-// Handle vote clicks
-function handleVote(e) {
-  e.stopPropagation();
-  const btn = e.currentTarget;
-  const isUpvote = btn.classList.contains('upvote');
-  const voteSection = btn.closest('.vote-section');
-  const otherBtn = isUpvote 
-    ? voteSection.querySelector('.downvote') 
-    : voteSection.querySelector('.upvote');
-
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-  } else {
-    btn.classList.add('active');
-    otherBtn.classList.remove('active');
-  }
 }
 
 // Handle like button clicks
@@ -3392,10 +3345,6 @@ function incrementViewCount(postId) {
   return baseCount + viewCounts[postId];
 }
 
-function getVoteState(postId) {
-  return { userVote: 0, voteCount: 0 }; // Placeholder function
-}
-
 // Get or create stable user ID for like tracking
 function getLocalUserId() {
   let localUserId = localStorage.getItem('travexlo_local_user_id');
@@ -3501,10 +3450,6 @@ function loadUserPosts() {
     }
   }
 }
-  
-  function saveVoteState(postId, userVote, voteCount) {
-  // TODO: Persist to backend when available
-  }
   
   function getComments(postId) {
   const allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
