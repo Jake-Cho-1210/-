@@ -605,7 +605,7 @@ window.addEventListener('popstate', function(event) {
     renderPosts();
 
     history.replaceState({ view: 'feed' }, '', window.location.pathname);
-    
+
   } else if (state.view === 'post') {
     // Return to post detail
     openPostDetail(state.postId, true);
@@ -2653,6 +2653,9 @@ navItems.forEach(item => item.classList.remove('active'));
   
   updateFeedTabs();
   renderPosts();
+
+  history.replaceState({ view: 'feed' }, '', window.location.pathname);
+  
   closeMobileSidebar();
 }
 
@@ -2787,6 +2790,8 @@ isDetailView = false;
   renderPosts();
   window.scrollTo(0, 0);
 });
+
+history.replaceState({ view: 'feed' }, '', window.location.pathname);
 
 // Create Post Modal Functions
 function openCreatePostModal() {
