@@ -1026,48 +1026,45 @@ function renderProfileTabContent(tab, postsSort = 'new') {
   return '';
 }
 
-// Avatar crop state
-// All coordinates are normalized to the image's natural size for consistency
-// between preview (CSS transform) and final render (canvas).
+// Avatar crop state - simplified approach
+// Store crop box in NATURAL image pixel coordinates for 1:1 preview-to-output match
 let cropImageSrc = null;
-let cropScale = 1;       // Zoom level (1 = 100%)
-let cropOffsetX = 0;     // Horizontal pan in pixels (at current scale)
-let cropOffsetY = 0;     // Vertical pan in pixels (at current scale)
+let cropImageEl = null;  // Reference to the loaded image element
+let cropBox = { x: 0, y: 0, size: 0 };  // Crop box in natural pixels
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
-let baseImageWidth = 0;  // Image display width at scale=1
-let baseImageHeight = 0; // Image display height at scale=1
+let dragStartCropX = 0;
+let dragStartCropY = 0;
 
-// Constants for crop UI - must match CSS values
-const CROP_AREA_SIZE = 250;
-const CROP_CIRCLE_SIZE = 200;
-const OUTPUT_SIZE = 200;
+// Constants
+const CROP_AREA_SIZE = 250;  // CSS crop area size
+const OUTPUT_SIZE = 200;     // Final avatar size
 
-// Handle avatar file upload - now opens crop modal
+// Handle avatar file upload
 function handleAvatarUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   
   if (!file.type.startsWith('image/')) {
-  alert('Please select an image file.');
-  return;
+    alert('Please select an image file.');
+    return;
   }
   
   const MAX_SIZE = 5 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
-  alert('Image size must be less than 5MB.');
-  return;
+    alert('Image size must be less than 5MB.');
+    return;
   }
   
   const reader = new FileReader();
   reader.onload = function(event) {
-  cropImageSrc = event.target.result;
-  openAvatarCropModal();
+    cropImageSrc = event.target.result;
+    openAvatarCropModal();
   };
   
   reader.onerror = function() {
-  alert('Failed to read the image file.');
+    alert('Failed to read the image file.');
   };
   
   reader.readAsDataURL(file);
@@ -1079,18 +1076,24 @@ function openAvatarCropModal() {
   const cropImage = document.getElementById('cropImage');
   const zoomSlider = document.getElementById('zoomSlider');
   
-  // Reset crop state
-  cropScale = 1;
-  cropOffsetX = 0;
-  cropOffsetY = 0;
-  zoomSlider.value = 100;
-  
   cropImage.src = cropImageSrc;
   cropImage.onload = function() {
-  // Store base dimensions (image size that fits in crop area at scale=1)
-  baseImageWidth = cropImage.offsetWidth;
-  baseImageHeight = cropImage.offsetHeight;
-  updateCropTransform();
+    cropImageEl = cropImage;
+    const natW = cropImage.naturalWidth;
+    const natH = cropImage.naturalHeight;
+    
+    // Initialize crop box: centered square covering the smaller dimension
+    const minDim = Math.min(natW, natH);
+    cropBox = {
+      x: (natW - minDim) / 2,
+      y: (natH - minDim) / 2,
+      size: minDim
+    };
+    
+    // Reset zoom slider to show initial crop
+    zoomSlider.value = 100;
+    
+    updateCropPreview();
   };
   
   modal.style.display = 'flex';
@@ -1102,174 +1105,227 @@ function closeAvatarCropModal() {
   const modal = document.getElementById('avatarCropModal');
   modal.style.display = 'none';
   cropImageSrc = null;
+  cropImageEl = null;
   const avatarFileInput = document.getElementById('avatarFileInput');
   if (avatarFileInput) avatarFileInput.value = '';
 }
 
-// Update crop image transform - applies pan and zoom
-// Transform origin is center, so translation happens after scaling
-function updateCropTransform() {
+// Update the crop preview to match cropBox
+// This renders the exact same view that will be saved
+function updateCropPreview() {
   const wrapper = document.getElementById('cropImageWrapper');
-  if (wrapper) {
-  wrapper.style.transform = `translate(${cropOffsetX}px, ${cropOffsetY}px) scale(${cropScale})`;
-  }
+  const img = document.getElementById('cropImage');
+  if (!wrapper || !img || !cropImageEl) return;
+  
+  const natW = cropImageEl.naturalWidth;
+  const natH = cropImageEl.naturalHeight;
+  
+  // Calculate scale: how much to scale natural image so cropBox.size fills CROP_AREA_SIZE
+  const scale = CROP_AREA_SIZE / cropBox.size;
+  
+  // Calculate translation to center the crop box in the view
+  // After scaling, the crop box top-left is at (cropBox.x * scale, cropBox.y * scale)
+  // We want it at (0, 0), so translate by negative of that
+  const translateX = -cropBox.x * scale;
+  const translateY = -cropBox.y * scale;
+  
+  // Set image dimensions to natural size (will be scaled by transform)
+  img.style.width = natW + 'px';
+  img.style.height = natH + 'px';
+  
+  // Apply transform
+  wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+  wrapper.style.transformOrigin = '0 0';
 }
 
-// Setup crop interactions (drag and zoom)
+// Setup crop interactions
 function setupCropInteractions() {
   const cropArea = document.getElementById('cropArea');
   const zoomSlider = document.getElementById('zoomSlider');
   
+  // Zoom slider changes the crop box size (smaller size = more zoom)
   zoomSlider.oninput = function() {
-  cropScale = this.value / 100;
-  updateCropTransform();
+    if (!cropImageEl) return;
+    const natW = cropImageEl.naturalWidth;
+    const natH = cropImageEl.naturalHeight;
+    const minDim = Math.min(natW, natH);
+    
+    // Slider 100 = full image (minDim), 300 = 1/3 of minDim (3x zoom)
+    const zoomFactor = this.value / 100;
+    const newSize = minDim / zoomFactor;
+    
+    // Keep crop centered when zooming
+    const centerX = cropBox.x + cropBox.size / 2;
+    const centerY = cropBox.y + cropBox.size / 2;
+    
+    cropBox.size = newSize;
+    cropBox.x = centerX - newSize / 2;
+    cropBox.y = centerY - newSize / 2;
+    
+    // Clamp to image bounds
+    clampCropBox();
+    updateCropPreview();
   };
   
+  // Mouse drag to pan
   cropArea.onmousedown = function(e) {
-  e.preventDefault();
-  isDragging = true;
-  dragStartX = e.clientX - cropOffsetX;
-  dragStartY = e.clientY - cropOffsetY;
-  cropArea.style.cursor = 'grabbing';
+    e.preventDefault();
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStartCropX = cropBox.x;
+    dragStartCropY = cropBox.y;
+    cropArea.style.cursor = 'grabbing';
   };
   
   document.onmousemove = function(e) {
-  if (!isDragging) return;
-  cropOffsetX = e.clientX - dragStartX;
-  cropOffsetY = e.clientY - dragStartY;
-  updateCropTransform();
+    if (!isDragging || !cropImageEl) return;
+    
+    // Convert mouse delta to natural image pixels
+    const scale = CROP_AREA_SIZE / cropBox.size;
+    const deltaX = (e.clientX - dragStartX) / scale;
+    const deltaY = (e.clientY - dragStartY) / scale;
+    
+    // Dragging moves the view, which means moving cropBox in opposite direction
+    cropBox.x = dragStartCropX - deltaX;
+    cropBox.y = dragStartCropY - deltaY;
+    
+    clampCropBox();
+    updateCropPreview();
   };
   
   document.onmouseup = function() {
-  isDragging = false;
-  if (cropArea) cropArea.style.cursor = 'grab';
+    isDragging = false;
+    const cropArea = document.getElementById('cropArea');
+    if (cropArea) cropArea.style.cursor = 'grab';
   };
   
+  // Touch support
   cropArea.ontouchstart = function(e) {
-  if (e.touches.length === 1) {
-  isDragging = true;
-  dragStartX = e.touches[0].clientX - cropOffsetX;
-  dragStartY = e.touches[0].clientY - cropOffsetY;
-  }
+    if (e.touches.length === 1) {
+      isDragging = true;
+      dragStartX = e.touches[0].clientX;
+      dragStartY = e.touches[0].clientY;
+      dragStartCropX = cropBox.x;
+      dragStartCropY = cropBox.y;
+    }
   };
   
   cropArea.ontouchmove = function(e) {
-  if (!isDragging || e.touches.length !== 1) return;
-  e.preventDefault();
-  cropOffsetX = e.touches[0].clientX - dragStartX;
-  cropOffsetY = e.touches[0].clientY - dragStartY;
-  updateCropTransform();
+    if (!isDragging || e.touches.length !== 1 || !cropImageEl) return;
+    e.preventDefault();
+    
+    const scale = CROP_AREA_SIZE / cropBox.size;
+    const deltaX = (e.touches[0].clientX - dragStartX) / scale;
+    const deltaY = (e.touches[0].clientY - dragStartY) / scale;
+    
+    cropBox.x = dragStartCropX - deltaX;
+    cropBox.y = dragStartCropY - deltaY;
+    
+    clampCropBox();
+    updateCropPreview();
   };
   
   cropArea.ontouchend = function() {
-  isDragging = false;
+    isDragging = false;
   };
+}
+
+// Clamp crop box to stay within image bounds
+function clampCropBox() {
+  if (!cropImageEl) return;
+  const natW = cropImageEl.naturalWidth;
+  const natH = cropImageEl.naturalHeight;
+  
+  // Ensure size doesn't exceed image dimensions
+  cropBox.size = Math.min(cropBox.size, Math.min(natW, natH));
+  cropBox.size = Math.max(cropBox.size, 50); // Minimum size
+  
+  // Clamp position
+  cropBox.x = Math.max(0, Math.min(cropBox.x, natW - cropBox.size));
+  cropBox.y = Math.max(0, Math.min(cropBox.y, natH - cropBox.size));
 }
 
 /**
- * Calculates the crop rectangle in natural image coordinates.
- * This function is the single source of truth for crop math,
- * ensuring preview and final output match exactly.
- * 
- * Coordinate system:
- * - The crop area is CROP_AREA_SIZE x CROP_AREA_SIZE pixels
- * - The crop circle (visible area) is CROP_CIRCLE_SIZE x CROP_CIRCLE_SIZE, centered
- * - The image wrapper is centered in the crop area with transform-origin: center
- * - Translation (cropOffsetX, cropOffsetY) moves the scaled image
- * - We need to find which part of the natural image falls inside the circle
+ * Generate cropped image from the current cropBox.
+ * This extracts exactly the pixels defined by cropBox from the natural image.
+ * The result is a square image that matches 1:1 what's visible in the preview.
  */
-function getCropRect(naturalWidth, naturalHeight) {
-  // Ratio from displayed size to natural size
-  const scaleToNatural = naturalWidth / baseImageWidth;
-  
-  // The circle center in crop area coords is always the center
-  const circleCenterX = CROP_AREA_SIZE / 2;
-  const circleCenterY = CROP_AREA_SIZE / 2;
-  
-  // Image center in crop area coords (before transform) is also the center
-  // After transform: imageCenter = cropAreaCenter + offset (since transform-origin is center)
-  // So the circle center relative to the transformed image center is: -offset
-  // In the image's local coords (before scale): -offset / scale
-  // Then convert to image pixel coords (where image center is at baseImageWidth/2, baseImageHeight/2)
-  
-  const imgCenterToCircleCenterX = -cropOffsetX / cropScale;
-  const imgCenterToCircleCenterY = -cropOffsetY / cropScale;
-  
-  // Circle center in base image coords (image coords at scale=1)
-  const circleCenterInImgX = baseImageWidth / 2 + imgCenterToCircleCenterX;
-  const circleCenterInImgY = baseImageHeight / 2 + imgCenterToCircleCenterY;
-  
-  // Circle size in base image coords
-  const circleSizeInImg = CROP_CIRCLE_SIZE / cropScale;
-  
-  // Crop rect in base image coords
-  const cropX = circleCenterInImgX - circleSizeInImg / 2;
-  const cropY = circleCenterInImgY - circleSizeInImg / 2;
-  const cropW = circleSizeInImg;
-  const cropH = circleSizeInImg;
-  
-  // Convert to natural image coords
-  return {
-  x: cropX * scaleToNatural,
-  y: cropY * scaleToNatural,
-  w: cropW * scaleToNatural,
-  h: cropH * scaleToNatural
-  };
+function getCroppedImg() {
+  return new Promise((resolve, reject) => {
+    if (!cropImageEl) {
+      reject(new Error('No image loaded'));
+      return;
+    }
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = OUTPUT_SIZE;
+    canvas.height = OUTPUT_SIZE;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw the exact crop region from the natural image
+    ctx.drawImage(
+      cropImageEl,
+      cropBox.x,           // source x
+      cropBox.y,           // source y
+      cropBox.size,        // source width
+      cropBox.size,        // source height
+      0,                   // dest x
+      0,                   // dest y
+      OUTPUT_SIZE,         // dest width
+      OUTPUT_SIZE          // dest height
+    );
+    
+    // Return as dataURL (could also return blob for upload)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    resolve(dataUrl);
+  });
 }
 
 // Apply the crop and save
-function applyAvatarCrop() {
-  const cropImage = document.getElementById('cropImage');
-  
-  // Create canvas
-  const canvas = document.createElement('canvas');
-  canvas.width = OUTPUT_SIZE;
-  canvas.height = OUTPUT_SIZE;
-  const ctx = canvas.getContext('2d');
-  
-  // Get crop rectangle using shared function
-  const crop = getCropRect(cropImage.naturalWidth, cropImage.naturalHeight);
-  
-  // Draw circular clip
-  ctx.beginPath();
-  ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.clip();
-  
-  // Draw the cropped portion - this matches exactly what's visible in the preview circle
-  ctx.drawImage(cropImage, crop.x, crop.y, crop.w, crop.h, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-  
-  // Convert to base64
-  const croppedImage = canvas.toDataURL('image/jpeg', 0.9);
-  
-  // Update currentUser profile image
-  currentUser.profileImage = croppedImage;
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-  
-  // Update avatar display immediately
-  const avatarEl = document.getElementById('profileAvatarLarge');
-  if (avatarEl) {
-  const imgEl = avatarEl.querySelector('img');
-  if (imgEl) {
-  imgEl.src = croppedImage;
-  } else {
-  avatarEl.innerHTML = `
-  <img src="${croppedImage}" alt="Profile">
-  <div class="avatar-edit-overlay">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-  <circle cx="12" cy="13" r="4"></circle>
-  </svg>
-  </div>
-  `;
+async function applyAvatarCrop() {
+  try {
+    // Generate cropped image - this is the ONLY image used everywhere
+    const croppedImage = await getCroppedImg();
+    
+    // Update currentUser profile image with the cropped result
+    currentUser.profileImage = croppedImage;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Update avatar display - just set the src, CSS handles circular display
+    const avatarEl = document.getElementById('profileAvatarLarge');
+    if (avatarEl) {
+      const imgEl = avatarEl.querySelector('img');
+      if (imgEl) {
+        imgEl.src = croppedImage;
+      } else {
+        avatarEl.innerHTML = `
+          <img src="${croppedImage}" alt="Profile">
+          <div class="avatar-edit-overlay">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </div>
+        `;
+      }
+    }
+    
+    // Update navbar profile button with same cropped image
+    renderProfileButton();
+    
+    // Close modal
+    closeAvatarCropModal();
+    
+    // TODO: When backend API is available, upload cropped blob to server
+    // const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+    // const formData = new FormData();
+    // formData.append('avatar', blob, 'avatar.jpg');
+    // await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+  } catch (err) {
+    console.error('Failed to crop image:', err);
+    alert('Failed to save profile image. Please try again.');
   }
-  }
-  
-  // Update navbar profile button
-  renderProfileButton();
-  
-  // Close modal
-  closeAvatarCropModal();
 }
 
 // State for viewing other users
