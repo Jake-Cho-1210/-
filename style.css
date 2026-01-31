@@ -840,6 +840,19 @@ body {
   margin-left: 2px;
 }
 
+/* Save Button */
+.save-btn {
+  transition: color 0.15s;
+}
+
+.save-btn.saved {
+  color: #f59e0b;
+}
+
+.save-btn:hover {
+  color: #f59e0b;
+}
+
 /* View Count */
 .view-count-display {
   cursor: default;
@@ -2214,15 +2227,19 @@ body {
 
 .crop-image-wrapper {
   position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   }
   
   .crop-image-wrapper img {
   display: block;
   user-select: none;
   pointer-events: none;
+  max-width: none;
+  max-height: none;
   }
 
 .crop-circle-overlay {

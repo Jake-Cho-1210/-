@@ -1025,7 +1025,7 @@ postsContainer.innerHTML = `
   
   if (tab === 'saved') {
     // Click to view saved post
-    document.querySelectorAll('.my-post-item').forEach(item => {
+    document.querySelectorAll('.saved-post-item').forEach(item => {
       item.addEventListener('click', () => {
         const postId = parseInt(item.dataset.postId);
         openPostDetail(postId);
@@ -1247,14 +1247,17 @@ function removeAvatar() {
   showToast('Profile picture removed');
 }
 
-// Avatar crop state
-let cropImageSrc = null;
-let cropZoom = 1;
-let cropOffsetX = 0;
-let cropOffsetY = 0;
-let isDraggingCrop = false;
-let dragStartX = 0;
-let dragStartY = 0;
+  // Avatar crop state
+  let cropImageSrc = null;
+  let cropZoom = 1;
+  let cropOffsetX = 0;
+  let cropOffsetY = 0;
+  let isDraggingCrop = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let baseZoom = 1; // Minimum zoom to fill crop area
+  let imgNaturalWidth = 0;
+  let imgNaturalHeight = 0;
 
 // Handle avatar file upload - opens crop modal
 function handleAvatarUpload(e) {
@@ -1291,7 +1294,7 @@ function openAvatarCropModal() {
   const zoomSlider = document.getElementById('zoomSlider');
   const cropArea = document.getElementById('cropArea');
   
-  // Reset crop state - will be computed after image loads
+  // Reset crop state
   cropOffsetX = 0;
   cropOffsetY = 0;
   
@@ -1303,24 +1306,23 @@ function openAvatarCropModal() {
   
   // Wait for image to load to compute proper fit-to-frame scale
   cropImage.onload = function() {
-    const cropAreaSize = Math.min(cropArea.offsetWidth, cropArea.offsetHeight) || 250;
-    const imgWidth = cropImage.naturalWidth;
-    const imgHeight = cropImage.naturalHeight;
+    const cropAreaSize = 250; // Fixed crop area size
+    imgNaturalWidth = cropImage.naturalWidth;
+    imgNaturalHeight = cropImage.naturalHeight;
     
-    // Compute scale to fit image inside crop area (contain mode)
-    // The smaller dimension of the image should fit the crop area
-    const scaleToFitWidth = cropAreaSize / imgWidth;
-    const scaleToFitHeight = cropAreaSize / imgHeight;
+    // Compute minimum zoom to fill the crop area (cover mode)
+    const scaleToFitWidth = cropAreaSize / imgNaturalWidth;
+    const scaleToFitHeight = cropAreaSize / imgNaturalHeight;
+    baseZoom = Math.max(scaleToFitWidth, scaleToFitHeight);
     
-    // Use the larger scale so the smaller dimension fills the frame
-    // This ensures no empty space in the circular crop area
-    cropZoom = Math.max(scaleToFitWidth, scaleToFitHeight);
+    // Start at minimum zoom (1.0 on slider = baseZoom actual)
+    cropZoom = 1.0;
     
-    // Update slider to reflect the computed zoom (slider range: 50-300, default center is 100)
-    // Map cropZoom to slider value: cropZoom * 100 gives the percentage
+    // Reset slider to minimum (100 = 1x = baseZoom)
     if (zoomSlider) {
-      const sliderValue = Math.round(cropZoom * 100);
-      zoomSlider.value = Math.max(50, Math.min(300, sliderValue));
+      zoomSlider.min = 100;
+      zoomSlider.max = 300;
+      zoomSlider.value = 100;
     }
     
     // Center the image
@@ -1333,13 +1335,16 @@ function openAvatarCropModal() {
   
   // Setup drag handlers
   setupCropDragHandlers();
-  }
+}
 
-// Update crop image transform
+// Update crop image transform - applies zoom relative to baseZoom
 function updateCropTransform() {
-  const cropImageWrapper = document.getElementById('cropImageWrapper');
-  if (cropImageWrapper) {
-    cropImageWrapper.style.transform = `translate(${cropOffsetX}px, ${cropOffsetY}px) scale(${cropZoom})`;
+  const cropImage = document.getElementById('cropImage');
+  if (cropImage) {
+    // Actual scale applied = baseZoom * cropZoom
+    const actualScale = baseZoom * cropZoom;
+    // Apply transform to the image directly - centered via flexbox, scale and translate from center
+    cropImage.style.transform = `translate(${cropOffsetX}px, ${cropOffsetY}px) scale(${actualScale})`;
   }
 }
 
@@ -1388,7 +1393,7 @@ function setupCropDragHandlers() {
     isDraggingCrop = false;
   };
   
-  // Zoom slider handler
+  // Zoom slider handler - value 100-300 maps to cropZoom 1.0-3.0
   if (zoomSlider) {
     zoomSlider.oninput = function() {
       cropZoom = this.value / 100;
@@ -1411,6 +1416,7 @@ function setupCropDragHandlers() {
   }
   
   // Apply avatar crop - generates cropped image with canvas
+  // Uses the SAME transform logic as updateCropTransform() to ensure preview matches output
   function applyAvatarCrop() {
   const cropImage = document.getElementById('cropImage');
   const cropArea = document.getElementById('cropArea');
@@ -1425,61 +1431,57 @@ function setupCropDragHandlers() {
   const ctx = canvas.getContext('2d');
   
   // Output size (square for circular avatar)
-  const outputSize = 200;
+  const outputSize = 256;
   canvas.width = outputSize;
   canvas.height = outputSize;
   
-  // Get crop area dimensions (the visible circular area is 250x250)
+  // Crop area size (matches the CSS - 250x250)
   const cropAreaSize = 250;
   
   // Create image for drawing
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
-    // The image in preview is scaled by cropZoom and offset by cropOffsetX/Y
-    // The scaled image dimensions
-    const scaledWidth = img.width * cropZoom;
-    const scaledHeight = img.height * cropZoom;
+    // Calculate actual scale (same as updateCropTransform)
+    const actualScale = baseZoom * cropZoom;
     
-    // The image is centered in the crop area, then offset by user drag
-    // Image center position relative to crop area center
-    const imgCenterX = cropAreaSize / 2 + cropOffsetX;
-    const imgCenterY = cropAreaSize / 2 + cropOffsetY;
+    // The image is centered in the crop area via flexbox
+    // Then translated by (cropOffsetX, cropOffsetY) and scaled by actualScale
+    // 
+    // Image center position in crop area coordinates:
+    // center_x = cropAreaSize/2 + cropOffsetX
+    // center_y = cropAreaSize/2 + cropOffsetY
+    //
+    // Scaled image dimensions:
+    const scaledWidth = img.width * actualScale;
+    const scaledHeight = img.height * actualScale;
     
-    // Image top-left corner in crop area coordinates
-    const imgLeft = imgCenterX - scaledWidth / 2;
-    const imgTop = imgCenterY - scaledHeight / 2;
+    // Image top-left corner in crop area coordinates:
+    const imgLeft = (cropAreaSize / 2) - (scaledWidth / 2) + cropOffsetX;
+    const imgTop = (cropAreaSize / 2) - (scaledHeight / 2) + cropOffsetY;
     
-    // The crop area (0,0 to cropAreaSize,cropAreaSize) captures what's visible
-    // We need to find what part of the original image this corresponds to
+    // We want to extract what's in the crop area (0,0) to (cropAreaSize, cropAreaSize)
+    // and render it to the canvas (0,0) to (outputSize, outputSize)
     
-    // Convert crop area (0,0) to image source coordinates
-    const srcX = (0 - imgLeft) / cropZoom;
-    const srcY = (0 - imgTop) / cropZoom;
-    const srcW = cropAreaSize / cropZoom;
-    const srcH = cropAreaSize / cropZoom;
+    // Source coordinates in the original image
+    const srcX = (0 - imgLeft) / actualScale;
+    const srcY = (0 - imgTop) / actualScale;
+    const srcW = cropAreaSize / actualScale;
+    const srcH = cropAreaSize / actualScale;
     
-    // Ensure we don't go out of bounds
-    const clampedSrcX = Math.max(0, srcX);
-    const clampedSrcY = Math.max(0, srcY);
-    const clampedSrcW = Math.min(img.width - clampedSrcX, srcW);
-    const clampedSrcH = Math.min(img.height - clampedSrcY, srcH);
-    
-    // Calculate destination adjustments for out-of-bounds source
-    const destX = srcX < 0 ? (-srcX * cropZoom / cropAreaSize) * outputSize : 0;
-    const destY = srcY < 0 ? (-srcY * cropZoom / cropAreaSize) * outputSize : 0;
-    const destW = (clampedSrcW / srcW) * outputSize;
-    const destH = (clampedSrcH / srcH) * outputSize;
-    
-    // Fill background (in case image doesn't cover full area)
-    ctx.fillStyle = '#f0f0f0';
+    // Fill background with neutral color
+    ctx.fillStyle = '#e5e5e5';
     ctx.fillRect(0, 0, outputSize, outputSize);
     
-    // Draw the cropped image
-    ctx.drawImage(img, clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH, destX, destY, destW, destH);
+    // Draw the cropped portion
+    ctx.drawImage(
+      img,
+      srcX, srcY, srcW, srcH,
+      0, 0, outputSize, outputSize
+    );
     
     // Save as data URL
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
     
     // Update user profile with cropped image
     currentUser.profileImage = croppedDataUrl;
@@ -2019,6 +2021,12 @@ const commentsHTML = comments.length > 0
                 </svg>
 ${comments.length} Comments
   </span>
+  <button class="action-btn save-btn ${isPostSaved(post.id) ? 'saved' : ''}" id="detailSaveBtn" data-post-id="${post.id}" aria-label="Save">
+                <svg viewBox="0 0 24 24" fill="${isPostSaved(post.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span id="detailSaveText">${isPostSaved(post.id) ? 'Saved' : 'Save'}</span>
+              </button>
   <span class="action-btn view-count-display" aria-label="Views">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -2059,6 +2067,12 @@ ${comments.length} Comments
   commentSubmit.addEventListener('click', () => handleCommentSubmit(postId));
   detailLikeBtn.addEventListener('click', () => handleDetailLike(postId));
   
+  // Save button handler
+  const detailSaveBtn = document.getElementById('detailSaveBtn');
+  if (detailSaveBtn) {
+    detailSaveBtn.addEventListener('click', () => handleDetailSave(postId));
+  }
+  
   // Add clickable author handlers for post author and comment authors
   document.querySelectorAll('.clickable-author').forEach(el => {
   el.addEventListener('click', (e) => {
@@ -2096,6 +2110,55 @@ function handleDetailLike(postId) {
   btn.classList.toggle('liked', newState.liked);
   svg.setAttribute('fill', newState.liked ? 'currentColor' : 'none');
   document.getElementById('detailLikeCount').textContent = newState.count;
+}
+
+// Check if post is saved by current user
+function isPostSaved(postId) {
+  if (!currentUser) return false;
+  const savedPosts = currentUser.savedPosts || [];
+  return savedPosts.includes(postId);
+}
+
+// Toggle save status for a post
+function toggleSavePost(postId) {
+  if (!currentUser) {
+    openAuthModal(false);
+    return false;
+  }
+  
+  if (!currentUser.savedPosts) {
+    currentUser.savedPosts = [];
+  }
+  
+  const index = currentUser.savedPosts.indexOf(postId);
+  if (index === -1) {
+    // Add to saved
+    currentUser.savedPosts.push(postId);
+  } else {
+    // Remove from saved
+    currentUser.savedPosts.splice(index, 1);
+  }
+  
+  // Persist to localStorage
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  
+  return index === -1; // Returns true if now saved, false if unsaved
+}
+
+// Handle save in detail view
+function handleDetailSave(postId) {
+  const isSaved = toggleSavePost(postId);
+  if (isSaved === false && !currentUser) return; // User not logged in
+  
+  const btn = document.getElementById('detailSaveBtn');
+  const svg = btn.querySelector('svg');
+  const text = document.getElementById('detailSaveText');
+  
+  btn.classList.toggle('saved', isSaved);
+  svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
+  text.textContent = isSaved ? 'Saved' : 'Save';
+  
+  showToast(isSaved ? 'Post saved' : 'Post unsaved');
 }
 
 // Close post detail and return to feed
