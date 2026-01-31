@@ -1771,9 +1771,31 @@ body {
 .create-post-modal select:focus {
   outline: none;
   border-color: var(--color-primary);
+  }
+
+/* Create Post Modal Button Sizing - make Cancel and Create buttons identical */
+.create-post-modal .form-actions .form-cancel,
+.create-post-modal .form-actions .form-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  height: 44px;
+  padding: 0 20px;
+  margin-top: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  box-sizing: border-box;
 }
 
-/* Image Upload Area */
+.create-post-modal .form-actions .form-cancel {
+  border-color: var(--color-border-light);
+}
+  
+  /* Image Upload Area */
 .image-upload-area {
   display: flex;
   flex-direction: column;
@@ -2382,23 +2404,23 @@ body {
 /* Ensure Cancel and Delete buttons are exactly the same size */
 .confirm-modal .form-cancel,
 .confirm-modal .form-submit {
-  flex: 1;
-  max-width: 120px;
-  padding: 12px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  height: 44px;
+  padding: 0 20px;
   margin-top: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1;
+  border: 1px solid transparent;
   border-radius: 20px;
   box-sizing: border-box;
 }
 
 .confirm-modal .form-cancel {
-  border: 1px solid var(--color-border-light);
-}
-
-.confirm-modal .form-submit {
-  border: 1px solid transparent;
+  border-color: var(--color-border-light);
 }
 
 .form-submit-danger {
