@@ -511,11 +511,9 @@ let feedScrollPosition = 0;
 let savedFeedState = null;
 let isDetailView = false;
   let isMyPageView = false;
-  let returnToPostId = null; // Track post to return to when navigating back from user profile
-  let returnToMyPage = false; // Track if we should return to My Page when closing post detail
-  let viewingUser = null; // Track user whose profile is being viewed
-
-// DOM Elements
+let viewingUser = null; // Track user whose profile is being viewed
+  
+  // DOM Elements
 const postsContainer = document.getElementById('postsContainer');
 const feedTitle = document.getElementById('feedTitle');
 const feedHeader = document.querySelector('.feed-header');
@@ -577,17 +575,46 @@ const themeToggleBtn = document.getElementById('themeToggleBtn');
 
 let isSignupMode = false;
 
-  // Initialize app
+// Initialize app
   function init() {
   loadTheme();
   loadUser();
   loadUserPosts(); // Load user-created posts from localStorage - TODO: remove when backend is implemented
   renderProfileButton();
+  
+  // Set initial history state for the feed
+  history.replaceState({ view: 'feed' }, '', window.location.pathname);
+  
   renderPosts();
   
   // Auto-refresh timestamps every 60 seconds
   setInterval(refreshTimestamps, 60000);
-}
+  }
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', function(event) {
+  const state = event.state;
+  
+  if (!state || state.view === 'feed') {
+    // Return to feed
+    isDetailView = false;
+    isMyPageView = false;
+    currentPostId = null;
+    viewingUser = null;
+    feedHeader.style.display = 'flex';
+    updateFeedTabs();
+    renderPosts();
+  } else if (state.view === 'post') {
+    // Return to post detail
+    openPostDetail(state.postId, true);
+  } else if (state.view === 'mypage') {
+    // Return to My Page
+    openMyPage(true);
+  } else if (state.view === 'userprofile') {
+    // Return to user profile
+    openUserProfile(state.author, state.nationality, true);
+  }
+});
 
 // Theme Functions
 function loadTheme() {
@@ -766,10 +793,15 @@ function backToLogin() {
 }
 
 // Open My Page view
-function openMyPage() {
+function openMyPage(skipHistory = false) {
   if (!currentUser) {
-    openAuthModal(false);
-    return;
+  openAuthModal(false);
+  return;
+  }
+  
+  // Push to history for back navigation (unless restoring from popstate)
+  if (!skipHistory) {
+    history.pushState({ view: 'mypage' }, '', '#mypage');
   }
   
   // Save scroll position
@@ -992,8 +1024,13 @@ function applyAvatarCrop() {
 }
 
 // Open other user's profile
-function openUserProfile(author, nationality) {
+function openUserProfile(author, nationality, skipHistory = false) {
   if (!author) return;
+  
+  // Push to history for back navigation (unless restoring from popstate)
+  if (!skipHistory) {
+    history.pushState({ view: 'userprofile', author: author, nationality: nationality }, '', `#user-${author}`);
+  }
   
   feedScrollPosition = window.scrollY;
   isMyPageView = true;
@@ -1002,7 +1039,7 @@ function openUserProfile(author, nationality) {
   feedHeader.style.display = 'none';
   renderOtherUserProfile('posts', 'new');
   window.scrollTo(0, 0);
-}
+  }
 
 // Render other user's profile view
 function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
@@ -1061,41 +1098,39 @@ function renderOtherUserProfile(tab = 'posts', postsSort = 'new') {
         renderOtherUserProfile('posts', sort);
       });
     });
-    document.querySelectorAll('.my-post-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const postId = parseInt(item.dataset.postId);
-        closeUserProfile();
-        openPostDetail(postId);
-      });
-    });
+document.querySelectorAll('.my-post-item').forEach(item => {
+  item.addEventListener('click', () => {
+  const postId = parseInt(item.dataset.postId);
+  openPostDetail(postId);
+  });
+  });
   }
   
   if (tab === 'comments') {
-    document.querySelectorAll('.comments-sort-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sort = btn.dataset.sort;
-        renderOtherUserProfile('comments', sort);
-      });
-    });
-    document.querySelectorAll('.comment-like-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleCommentLikeClick(btn);
-      });
-    });
-    document.querySelectorAll('.my-comment-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const postId = parseInt(item.dataset.postId);
-        closeUserProfile();
-        openPostDetail(postId);
-      });
-    });
+  document.querySelectorAll('.comments-sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+  document.querySelectorAll('.comments-sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const sort = btn.dataset.sort;
+  renderOtherUserProfile('comments', sort);
+  });
+  });
+  document.querySelectorAll('.comment-like-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  handleCommentLikeClick(btn);
+  });
+  });
+  document.querySelectorAll('.my-comment-item').forEach(item => {
+  item.addEventListener('click', () => {
+  const postId = parseInt(item.dataset.postId);
+  openPostDetail(postId);
+  });
+  });
   }
-}
-
-// Render My Page view with tabs
+  }
+  
+  // Render My Page view with tabs
 function renderMyPageView(tab = 'edit', postsSort = 'new') {
   activeProfileTab = tab;
   const flag = getFlagEmoji(currentUser.nationality);
@@ -1259,14 +1294,12 @@ if (tab === 'comments') {
 document.querySelectorAll('.my-comment-item').forEach(item => {
   item.addEventListener('click', () => {
   const postId = parseInt(item.dataset.postId);
-  returnToMyPage = true; // Set flag to return to My Page on back
-  closeMyPage();
   openPostDetail(postId);
   });
   });
   }
   if (tab === 'posts') {
-    // Posts tab sorting
+  // Posts tab sorting
     document.querySelectorAll('.posts-sort-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.posts-sort-btn').forEach(b => b.classList.remove('active'));
@@ -1275,12 +1308,10 @@ document.querySelectorAll('.my-comment-item').forEach(item => {
         renderMyPageView('posts', sort);
       });
     });
-    // Click to view post
-document.querySelectorAll('.my-post-item').forEach(item => {
+// Click to view post
+  document.querySelectorAll('.my-post-item').forEach(item => {
   item.addEventListener('click', () => {
   const postId = parseInt(item.dataset.postId);
-  returnToMyPage = true; // Set flag to return to My Page on back
-  closeMyPage();
   openPostDetail(postId);
   });
   });
@@ -1302,13 +1333,12 @@ document.querySelectorAll('.my-post-item').forEach(item => {
       handleCommentLikeClick(btn);
     });
   });
-  // Click to view post
+// Click to view post
   document.querySelectorAll('.my-comment-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const postId = parseInt(item.dataset.postId);
-      closeUserProfile();
-      openPostDetail(postId);
-    });
+  item.addEventListener('click', () => {
+  const postId = parseInt(item.dataset.postId);
+  openPostDetail(postId);
+  });
   });
   }
   }
@@ -1409,45 +1439,34 @@ document.querySelectorAll('.my-post-item').forEach(item => {
 
 // Close other user profile
 function closeUserProfile() {
-  viewingUser = null;
-  isMyPageView = false;
-  
-  // Check if we should return to a post detail view
-  if (returnToPostId !== null) {
-  const postIdToReturn = returnToPostId;
-  returnToPostId = null; // Clear the return state
-  openPostDetail(postIdToReturn);
-  return;
+  // Use browser history for back navigation
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
   }
   
-  // Show the feed header again
+  // Fallback: if no history (direct page access), go to feed
+  viewingUser = null;
+  isMyPageView = false;
   feedHeader.style.display = 'flex';
-  
-  // Restore community layout (Hot/New/Top filters, Topic filters)
   updateFeedTabs();
-  
-  // Re-render posts
   renderPosts();
-  
-  // Restore scroll position
-  setTimeout(() => {
-  window.scrollTo(0, feedScrollPosition);
-  }, 0);
-}
+  }
 
 // Close My Page and return to feed
 function closeMyPage() {
+  // Use browser history for back navigation
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+  
+  // Fallback: if no history (direct page access), go to feed
   isMyPageView = false;
   feedHeader.style.display = 'flex';
-  
-  // Restore community layout (Hot/New/Top filters, Topic filters)
   updateFeedTabs();
-  
   renderPosts();
-  setTimeout(() => {
-  window.scrollTo(0, feedScrollPosition);
-  }, 0);
-}
+  }
 
 // Handle My Page save
 function handleMyPageSave(e) {
@@ -1533,9 +1552,14 @@ function formatCommentTime(timestamp) {
 }
 
 // Open post detail view (inline, not modal)
-function openPostDetail(postId) {
+function openPostDetail(postId, skipHistory = false) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
+  
+  // Push to history for back navigation (unless restoring from popstate)
+  if (!skipHistory) {
+    history.pushState({ view: 'post', postId: postId }, '', `#post-${postId}`);
+  }
   
   // Find post card crossing virtual anchor line (120px from top)
   const ANCHOR_LINE_Y = 120;
@@ -1783,9 +1807,6 @@ ${comments.length} Comments
   closePostDetail();
   openMyPage();
   } else {
-  // Store postId to return to when closing user profile
-  returnToPostId = postId;
-  closePostDetail();
   openUserProfile(author, nationality);
   }
   });
@@ -1816,15 +1837,20 @@ function handleDetailLike(postId) {
 
 // Close post detail and return to feed
 function closePostDetail() {
-  isDetailView = false;
-  currentPostId = null;
-  
-  // Check if we should return to My Page
-  if (returnToMyPage) {
-    returnToMyPage = false;
-    openMyPage();
+  // Use browser history for back navigation
+  if (window.history.length > 1) {
+    window.history.back();
     return;
   }
+  
+  // Fallback: if no history (direct page access), go to feed
+  restoreToFeed();
+}
+
+// Internal function to restore feed state (used by popstate handler)
+function restoreToFeed() {
+  isDetailView = false;
+  currentPostId = null;
   
   // Restore saved feed state if available
   if (savedFeedState) {
@@ -2266,11 +2292,7 @@ function handleCategoryClick(e) {
     feedHeader.style.display = 'flex';
   }
 
-// Clear return states when explicitly navigating to a category
-  returnToPostId = null;
-  returnToMyPage = false;
-  
-  navItems.forEach(item => item.classList.remove('active'));
+navItems.forEach(item => item.classList.remove('active'));
   navItem.classList.add('active');
   
   currentCategory = category;
@@ -2415,9 +2437,8 @@ logoLink.addEventListener('click', (e) => {
 isDetailView = false;
   isMyPageView = false;
   currentPostId = null;
-  returnToPostId = null;
-  returnToMyPage = false;
-
+  viewingUser = null;
+  
   // Update UI
   navItems.forEach(item => {
   item.classList.toggle('active', item.dataset.category === 'all');
