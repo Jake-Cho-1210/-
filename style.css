@@ -581,7 +581,9 @@ body {
 
 .feed-tabs {
   display: flex;
-}
+  flex-direction: column;
+  gap: 8px;
+  }
 
 .feed-sort {
   display: flex;
@@ -1697,7 +1699,6 @@ body {
 .feed-topic-tabs {
   display: none;
   gap: 8px;
-  margin-top: 8px;
   flex-wrap: wrap;
 }
 
